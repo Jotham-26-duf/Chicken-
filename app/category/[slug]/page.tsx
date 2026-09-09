@@ -1,5 +1,5 @@
 import MovieCard from "../../components/MovieCard";
-import { movies } from "../../data/movies";
+import { prisma } from "../../../lib/prisma";
 
 interface CategoryPageProps {
   params: Promise<{
@@ -12,21 +12,36 @@ export default async function CategoryPage({
 }: CategoryPageProps) {
   const { slug } = await params;
 
-  const categoryName =
-    slug.charAt(0).toUpperCase() + slug.slice(1);
-
-  const categoryMovies = movies.filter((movie) => {
-    return movie.genres.some(
-      (genre) =>
-        genre.toLowerCase() === slug.toLowerCase()
-    );
+  const category = await prisma.genre.findFirst({
+    where: {
+      name: {
+        equals: slug,
+        mode: "insensitive",
+      },
+    },
   });
+
+  const categoryName = category?.name ?? slug;
+
+  const categoryMovies = category
+    ? await prisma.movie.findMany({
+        where: {
+          genres: {
+            some: {
+              genreId: category.id,
+            },
+          },
+        },
+        orderBy: {
+          createdAt: "desc",
+        },
+      })
+    : [];
 
   return (
     <main className="min-h-screen bg-[#121212] px-6 py-28 text-[#FFFFFF] lg:px-10">
       <div className="mx-auto max-w-7xl">
 
-        {/* Header */}
         <div>
           <p className="text-sm font-semibold uppercase tracking-[0.2em] text-[#00E5FF]">
             Category
@@ -41,7 +56,6 @@ export default async function CategoryPage({
           </p>
         </div>
 
-        {/* Movies */}
         {categoryMovies.length === 0 ? (
           <div className="mt-16 rounded-2xl bg-[#2A2A2A] px-6 py-16 text-center">
             <div className="text-5xl">🎬</div>
@@ -63,9 +77,7 @@ export default async function CategoryPage({
 
               <span className="rounded-md bg-[#5C6BC0] px-3 py-1 text-sm font-semibold text-white">
                 {categoryMovies.length}{" "}
-                {categoryMovies.length === 1
-                  ? "Movie"
-                  : "Movies"}
+                {categoryMovies.length === 1 ? "Movie" : "Movies"}
               </span>
             </div>
 

@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { movies } from "../../data/movies";
+import { prisma } from "../../../lib/prisma";
 
 interface WatchPageProps {
   params: Promise<{
@@ -12,7 +12,18 @@ export default async function WatchPage({
 }: WatchPageProps) {
   const { slug } = await params;
 
-  const movie = movies.find((movie) => movie.slug === slug);
+  const movie = await prisma.movie.findUnique({
+    where: {
+      slug,
+    },
+    include: {
+      genres: {
+        include: {
+          genre: true,
+        },
+      },
+    },
+  });
 
   if (!movie) {
     return (
@@ -37,20 +48,17 @@ export default async function WatchPage({
     );
   }
 
+  const movieGenres = movie.genres.map(
+    (movieGenre) => movieGenre.genre.name
+  );
+
   return (
     <main className="min-h-screen bg-[#121212] text-[#FFFFFF]">
-
-      {/* Header */}
       <header className="border-b border-white/10 bg-[#121212]">
         <div className="mx-auto flex h-20 max-w-7xl items-center justify-between px-6 lg:px-10">
-
           <Link href="/" className="text-2xl font-bold">
-            <span className="text-[#00E5FF]">
-              AG
-            </span>
-            <span className="text-[#E040FB]">
-              TIMES
-            </span>
+            <span className="text-[#00E5FF]">AG</span>
+            <span className="text-[#E040FB]">TIMES</span>
           </Link>
 
           <Link
@@ -59,13 +67,10 @@ export default async function WatchPage({
           >
             ← Movie Details
           </Link>
-
         </div>
       </header>
 
-      {/* Watch section */}
       <section className="mx-auto max-w-7xl px-6 py-10 lg:px-10">
-
         <div>
           <p className="text-sm font-semibold uppercase tracking-[0.2em] text-[#00E5FF]">
             Now Watching
@@ -80,47 +85,48 @@ export default async function WatchPage({
 
             <span>•</span>
 
-            <span>
-              {movie.genres.join(" • ")}
-            </span>
+            <span>{movieGenres.join(" • ")}</span>
 
             <span>•</span>
 
             <span className="flex items-center gap-1">
-              <span className="text-[#FFC107]">
-                ★
-              </span>
-
+              <span className="text-[#FFC107]">★</span>
               {movie.rating}
             </span>
           </div>
         </div>
 
-        {/* Video player */}
+        {/* StreamHG Video Player */}
         <div className="mt-8 overflow-hidden rounded-2xl border border-white/10 bg-black shadow-2xl">
-
           <div className="aspect-video">
-
-            <video
-              controls
-              className="h-full w-full"
-              poster={movie.image}
-            >
-              <source
-                src="/videos/sample.mp4"
-                type="video/mp4"
+            {movie.streamUrl ? (
+              <iframe
+                src={movie.streamUrl}
+                title={`${movie.title} - StreamHG`}
+                className="h-full w-full"
+                allow="autoplay; fullscreen"
+                allowFullScreen
+                frameBorder="0"
               />
+            ) : (
+              <div className="flex h-full items-center justify-center px-6 text-center">
+                <div>
+                  <div className="text-5xl">🎬</div>
 
-              Your browser does not support video playback.
-            </video>
+                  <h2 className="mt-4 text-xl font-bold">
+                    Video Not Available
+                  </h2>
 
+                  <p className="mt-2 text-sm text-[#AAAAAA]">
+                    This movie does not have a streaming link yet.
+                  </p>
+                </div>
+              </div>
+            )}
           </div>
-
         </div>
 
-        {/* Description */}
         <div className="mt-8 grid gap-8 lg:grid-cols-[1fr_300px]">
-
           <div>
             <h2 className="text-2xl font-bold">
               About {movie.title}
@@ -135,68 +141,47 @@ export default async function WatchPage({
             </p>
           </div>
 
-          {/* Movie information */}
           <div className="rounded-2xl bg-[#2A2A2A] p-6">
-
             <h2 className="text-lg font-bold">
               Movie Information
             </h2>
 
             <div className="mt-5 space-y-4 text-sm">
-
               <div>
-                <p className="text-[#AAAAAA]">
-                  Type
-                </p>
-
+                <p className="text-[#AAAAAA]">Type</p>
                 <p className="mt-1 font-medium">
                   {movie.type}
                 </p>
               </div>
 
               <div>
-                <p className="text-[#AAAAAA]">
-                  Language
-                </p>
-
+                <p className="text-[#AAAAAA]">Language</p>
                 <p className="mt-1 font-medium">
                   {movie.language}
                 </p>
               </div>
 
               <div>
-                <p className="text-[#AAAAAA]">
-                  Translator
-                </p>
-
+                <p className="text-[#AAAAAA]">Translator</p>
                 <p className="mt-1 font-medium">
                   {movie.translator}
                 </p>
               </div>
 
               <div>
-                <p className="text-[#AAAAAA]">
-                  Genres
-                </p>
-
+                <p className="text-[#AAAAAA]">Genres</p>
                 <p className="mt-1 font-medium">
-                  {movie.genres.join(", ")}
+                  {movieGenres.join(", ")}
                 </p>
               </div>
-
             </div>
-
           </div>
-
         </div>
-
       </section>
 
-      {/* Footer */}
       <footer className="border-t border-white/10 px-6 py-8 text-center text-sm text-[#AAAAAA]">
         © 2026 AGTIMES. All rights reserved.
       </footer>
-
     </main>
   );
 }

@@ -1,47 +1,25 @@
 
+
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
-import { authOptions } from "../auth/[...nextauth]/route";
+import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-
 export async function GET() {
-  try {
+  try{
     const session = await getServerSession(authOptions);
-
-    if (!session?.user?.email) {
+    if (!session?.user?.id) {
       return NextResponse.json(
-        { error: "You must be logged in." },
+        { error: "Unauthorized" },
         { status: 401 }
-      );
-    }
-
-    const user = await prisma.user.findUnique({
-      where: {
-        email: session.user.email,
-      },
-    });
-
-    if (!user) {
-      return NextResponse.json(
-        { error: "User not found." },
-        { status: 404 }
       );
     }
 
     const favorites = await prisma.favorite.findMany({
       where: {
-        userId: user.id,
+        userId: session.user.id,
       },
       include: {
-        movie: {
-          include: {
-            genres: {
-              include: {
-                genre: true,
-              },
-            },
-          },
-        },
+        movie: true,
       },
       orderBy: {
         createdAt: "desc",
@@ -50,46 +28,33 @@ export async function GET() {
 
     return NextResponse.json(favorites);
   } catch (error) {
-    console.error("Get favorites error:", error);
-
+    console.error("Favorites GET error:", error);
+  
     return NextResponse.json(
-      { error: "Failed to load favorites." },
+      { error: "Failed to fetch favorites" },
       { status: 500 }
     );
   }
 }
 
+
 export async function POST(request: Request) {
   try {
     const session = await getServerSession(authOptions);
 
-    if (!session?.user?.email) {
+    if (!session?.user?.id) {
       return NextResponse.json(
-        { error: "You must be logged in." },
+        { error: "Unauthorized" },
         { status: 401 }
       );
     }
-
     const body = await request.json();
-    const movieId = body.movieId;
+    const movieId = body?.movieId;
 
-    if (!movieId) {
+    if (!movieId || typeof movieId !== "string") {
       return NextResponse.json(
-        { error: "movieId is required." },
+        { error: "movieId is required" },
         { status: 400 }
-      );
-    }
-
-    const user = await prisma.user.findUnique({
-      where: {
-        email: session.user.email,
-      },
-    });
-
-    if (!user) {
-      return NextResponse.json(
-        { error: "User not found." },
-        { status: 404 }
       );
     }
 
@@ -99,9 +64,10 @@ export async function POST(request: Request) {
       },
     });
 
+
     if (!movie) {
       return NextResponse.json(
-        { error: "Movie not found." },
+        { error: "Movie not found" },
         { status: 404 }
       );
     }
@@ -109,23 +75,26 @@ export async function POST(request: Request) {
     const favorite = await prisma.favorite.upsert({
       where: {
         userId_movieId: {
-          userId: user.id,
+          userId: session.user.id,
           movieId,
         },
       },
       update: {},
       create: {
-        userId: user.id,
+        userId: session.user.id,
         movieId,
+      },
+      include: {
+        movie: true,
       },
     });
 
     return NextResponse.json(favorite, { status: 201 });
   } catch (error) {
-    console.error("Add favorite error:", error);
+    console.error("Favorites POST error:", error);
 
     return NextResponse.json(
-      { error: "Failed to add favorite." },
+      { error: "Failed to add favorite" },
       { status: 500 }
     );
   }
@@ -135,53 +104,46 @@ export async function DELETE(request: Request) {
   try {
     const session = await getServerSession(authOptions);
 
-    if (!session?.user?.email) {
+    if (!session?.user?.id) {
       return NextResponse.json(
-        { error: "You must be logged in." },
+        { error: "Unauthorized" },
         { status: 401 }
       );
     }
 
-    const body = await request.json();
-    const movieId = body.movieId;
+    const { searchParams } = new URL(request.url);
+    const movieId = searchParams.get("movieId");
 
     if (!movieId) {
       return NextResponse.json(
-        { error: "movieId is required." },
+        { error: "movieId is required" },
         { status: 400 }
-      );
-    }
-
-    const user = await prisma.user.findUnique({
-      where: {
-        email: session.user.email,
-      },
-    });
-
-    if (!user) {
-      return NextResponse.json(
-        { error: "User not found." },
-        { status: 404 }
       );
     }
 
     await prisma.favorite.deleteMany({
       where: {
-        userId: user.id,
+        userId: session.user.id,
         movieId,
       },
     });
 
     return NextResponse.json({
-      message: "Favorite removed.",
-    });
-  } catch (error) {
-    console.error("Remove favorite error:", error);
-
+      success: true,
+    });} 
+    catch (error) {
+    console.error("Favorites DELETE error:", error);
     return NextResponse.json(
-      { error: "Failed to remove favorite." },
+      { error: "Failed to remove favorite" },
       { status: 500 }
     );
   }
 }
+
+
+
+
+
+
+
 

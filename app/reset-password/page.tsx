@@ -1,19 +1,20 @@
-
 "use client";
 
 import Link from "next/link";
 import { useState } from "react";
-import { signIn } from "next-auth/react";
 
-export default function LoginPage() {
+export default function ResetPasswordPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [message, setMessage] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
 
+    setMessage("");
     setError("");
 
     const cleanEmail = email.trim().toLowerCase();
@@ -24,27 +25,47 @@ export default function LoginPage() {
     }
 
     if (!password) {
-      setError("Please enter your password.");
+      setError("Please enter your new password.");
+      return;
+    }
+
+    if (password.length < 8) {
+      setError("Password must be at least 8 characters.");
+      return;
+    }
+
+    if (password !== confirmPassword) {
+      setError("Passwords do not match.");
       return;
     }
 
     setLoading(true);
 
     try {
-      const result = await signIn("credentials", {
-        email: cleanEmail,
-        password,
-        redirect: false,
+      const response = await fetch("/api/auth/reset-password", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          email: cleanEmail,
+          password,
+        }),
       });
 
-      if (!result || result.error) {
-        setError("Invalid email or password.");
+      const data = await response.json();
+
+      if (!response.ok) {
+        setError(data.error || "Unable to reset password.");
         return;
       }
 
-      window.location.href = "/";
+      setMessage("Password reset successfully. You can now sign in.");
+      setEmail("");
+      setPassword("");
+      setConfirmPassword("");
     } catch (error) {
-      console.error("Login failed:", error);
+      console.error("Password reset failed:", error);
       setError("Unable to connect to the server.");
     } finally {
       setLoading(false);
@@ -67,17 +88,23 @@ export default function LoginPage() {
 
           <div className="text-center">
             <h1 className="text-3xl font-bold">
-              Welcome Back
+              Reset Password
             </h1>
 
             <p className="mt-2 text-[#AAAAAA]">
-              Sign in to continue to AGTIMES
+              Create a new password for your account.
             </p>
           </div>
 
           {error && (
             <div className="mt-6 rounded-xl border border-red-500/20 bg-red-500/10 px-4 py-3 text-sm text-red-400">
               {error}
+            </div>
+          )}
+
+          {message && (
+            <div className="mt-6 rounded-xl border border-green-500/20 bg-green-500/10 px-4 py-3 text-sm text-green-400">
+              {message}
             </div>
           )}
 
@@ -101,6 +128,7 @@ export default function LoginPage() {
                 onChange={(e) => {
                   setEmail(e.target.value);
                   setError("");
+                  setMessage("");
                 }}
                 placeholder="you@example.com"
                 required
@@ -114,7 +142,7 @@ export default function LoginPage() {
                 htmlFor="password"
                 className="mb-2 block text-sm font-medium"
               >
-                Password
+                New Password
               </label>
 
               <input
@@ -124,21 +152,37 @@ export default function LoginPage() {
                 onChange={(e) => {
                   setPassword(e.target.value);
                   setError("");
+                  setMessage("");
                 }}
-                placeholder="••••••••"
+                placeholder="Enter new password"
                 required
                 disabled={loading}
                 className="w-full rounded-xl border border-white/10 bg-[#121212] px-4 py-3 text-[#FFFFFF] outline-none placeholder:text-[#AAAAAA] focus:border-[#2979FF] disabled:opacity-60"
               />
             </div>
 
-            <div className="text-right">
-              <Link
-                href="/reset-password"
-                className="text-sm font-medium text-[#00E5FF] hover:text-[#E040FB]"
+            <div>
+              <label
+                htmlFor="confirmPassword"
+                className="mb-2 block text-sm font-medium"
               >
-                Forgot password?
-              </Link>
+                Confirm Password
+              </label>
+
+              <input
+                id="confirmPassword"
+                type="password"
+                value={confirmPassword}
+                onChange={(e) => {
+                  setConfirmPassword(e.target.value);
+                  setError("");
+                  setMessage("");
+                }}
+                placeholder="Confirm new password"
+                required
+                disabled={loading}
+                className="w-full rounded-xl border border-white/10 bg-[#121212] px-4 py-3 text-[#FFFFFF] outline-none placeholder:text-[#AAAAAA] focus:border-[#2979FF] disabled:opacity-60"
+              />
             </div>
 
             <button
@@ -146,32 +190,24 @@ export default function LoginPage() {
               disabled={loading}
               className="w-full rounded-xl bg-[#2979FF] px-6 py-3.5 font-semibold text-white transition hover:brightness-110 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60"
             >
-              {loading ? "Signing In..." : "Sign In"}
+              {loading ? "Resetting Password..." : "Reset Password"}
             </button>
 
           </form>
 
           <p className="mt-6 text-center text-sm text-[#AAAAAA]">
-            Don't have an account?{" "}
+            Remember your password?{" "}
             <Link
-              href="/register"
+              href="/login"
               className="font-semibold text-[#00E5FF] hover:text-[#E040FB]"
             >
-              Create one
+              Back to Login
             </Link>
           </p>
 
         </div>
 
-        <Link
-          href="/"
-          className="mt-6 block text-center text-sm text-[#AAAAAA] hover:text-[#FFFFFF]"
-        >
-          ← Back to AGTIMES
-        </Link>
-
       </div>
     </main>
   );
 }
-
