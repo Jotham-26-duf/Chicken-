@@ -1,7 +1,11 @@
+
 {
   "name": "agtimes",
   "version": "0.1.0",
   "private": true,
+  "allowScripts": {
+    "pg-cloudflare": true
+  },
   "scripts": {
     "build": "next build",
     "dev": "next dev",
