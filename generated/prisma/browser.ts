@@ -42,3 +42,23 @@ export type MovieGenre = Prisma.MovieGenreModel
  * 
  */
 export type Favorite = Prisma.FavoriteModel
+/**
+ * Model Series
+ * 
+ */
+export type Series = Prisma.SeriesModel
+/**
+ * Model Season
+ * 
+ */
+export type Season = Prisma.SeasonModel
+/**
+ * Model Episode
+ * 
+ */
+export type Episode = Prisma.EpisodeModel
+/**
+ * Model SupportMessage
+ * 
+ */
+export type SupportMessage = Prisma.SupportMessageModel

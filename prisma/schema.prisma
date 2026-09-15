@@ -1,6 +1,8 @@
+
 generator client {
   provider = "prisma-client"
   output   = "../generated/prisma"
+  runtime  = "workerd"
 }
 
 datasource db {
@@ -13,14 +15,15 @@ enum Role {
 }
 
 model User {
-  id           String     @id @default(cuid())
-  name         String
-  email        String     @unique
-  passwordHash String
-  role         Role       @default(USER)
-  createdAt    DateTime   @default(now())
-  updatedAt    DateTime   @updatedAt
-  favorites    Favorite[]
+  id              String           @id @default(cuid())
+  name            String
+  email           String           @unique
+  passwordHash    String
+  role            Role             @default(USER)
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+  favorites       Favorite[]
+  supportMessages SupportMessage[]
 }
 
 model Movie {
@@ -72,3 +75,63 @@ model Favorite {
   @@unique([userId, movieId])
   @@index([movieId])
 }
+
+model Series {
+  id          String   @id @default(cuid())
+  title       String
+  slug        String   @unique
+  year        String
+  rating      String
+  image       String
+  description String
+  language    String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  seasons Season[]
+}
+
+model Season {
+  id        String   @id @default(cuid())
+  number    Int
+  title     String?
+  seriesId  String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  series   Series    @relation(fields: [seriesId], references: [id], onDelete: Cascade)
+  episodes Episode[]
+
+  @@unique([seriesId, number])
+  @@index([seriesId])
+}
+
+model Episode {
+  id          String   @id @default(cuid())
+  title       String
+  number      Int
+  description String?
+  image       String?
+  streamUrl   String?
+  downloadUrl String?
+  seasonId    String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  season Season @relation(fields: [seasonId], references: [id], onDelete: Cascade)
+
+  @@unique([seasonId, number])
+  @@index([seasonId])
+}
+
+model SupportMessage {
+  id        String   @id @default(cuid())
+  message   String
+  userId    String?
+  createdAt DateTime @default(now())
+
+  user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([userId])
+}
+

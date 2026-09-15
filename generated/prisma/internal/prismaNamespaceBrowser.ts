@@ -55,7 +55,11 @@ export const ModelName = {
   Movie: 'Movie',
   Genre: 'Genre',
   MovieGenre: 'MovieGenre',
-  Favorite: 'Favorite'
+  Favorite: 'Favorite',
+  Series: 'Series',
+  Season: 'Season',
+  Episode: 'Episode',
+  SupportMessage: 'SupportMessage'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -132,6 +136,60 @@ export const FavoriteScalarFieldEnum = {
 } as const
 
 export type FavoriteScalarFieldEnum = (typeof FavoriteScalarFieldEnum)[keyof typeof FavoriteScalarFieldEnum]
+
+
+export const SeriesScalarFieldEnum = {
+  id: 'id',
+  title: 'title',
+  slug: 'slug',
+  year: 'year',
+  rating: 'rating',
+  image: 'image',
+  description: 'description',
+  language: 'language',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type SeriesScalarFieldEnum = (typeof SeriesScalarFieldEnum)[keyof typeof SeriesScalarFieldEnum]
+
+
+export const SeasonScalarFieldEnum = {
+  id: 'id',
+  number: 'number',
+  title: 'title',
+  seriesId: 'seriesId',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type SeasonScalarFieldEnum = (typeof SeasonScalarFieldEnum)[keyof typeof SeasonScalarFieldEnum]
+
+
+export const EpisodeScalarFieldEnum = {
+  id: 'id',
+  title: 'title',
+  number: 'number',
+  description: 'description',
+  image: 'image',
+  streamUrl: 'streamUrl',
+  downloadUrl: 'downloadUrl',
+  seasonId: 'seasonId',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type EpisodeScalarFieldEnum = (typeof EpisodeScalarFieldEnum)[keyof typeof EpisodeScalarFieldEnum]
+
+
+export const SupportMessageScalarFieldEnum = {
+  id: 'id',
+  message: 'message',
+  userId: 'userId',
+  createdAt: 'createdAt'
+} as const
+
+export type SupportMessageScalarFieldEnum = (typeof SupportMessageScalarFieldEnum)[keyof typeof SupportMessageScalarFieldEnum]
 
 
 export const SortOrder = {

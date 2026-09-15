@@ -10,12 +10,9 @@
  * 🟢 You can import this file directly.
  */
 
-import * as process from 'node:process'
-import * as path from 'node:path'
-import { fileURLToPath } from 'node:url'
-globalThis['__dirname'] = path.dirname(fileURLToPath(import.meta.url))
+globalThis['__dirname'] = '/'
 
-import * as runtime from "@prisma/client/runtime/client"
+import * as runtime from "@prisma/client/runtime/wasm-compiler-edge"
 import * as $Enums from "./enums"
 import * as $Class from "./internal/class"
 import * as Prisma from "./internal/prismaNamespace"
@@ -66,3 +63,23 @@ export type MovieGenre = Prisma.MovieGenreModel
  * 
  */
 export type Favorite = Prisma.FavoriteModel
+/**
+ * Model Series
+ * 
+ */
+export type Series = Prisma.SeriesModel
+/**
+ * Model Season
+ * 
+ */
+export type Season = Prisma.SeasonModel
+/**
+ * Model Episode
+ * 
+ */
+export type Episode = Prisma.EpisodeModel
+/**
+ * Model SupportMessage
+ * 
+ */
+export type SupportMessage = Prisma.SupportMessageModel

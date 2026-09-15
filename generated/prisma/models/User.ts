@@ -8,7 +8,7 @@
  *
  * 🟢 You can import this file directly.
  */
-import type * as runtime from "@prisma/client/runtime/client"
+import type * as runtime from "@prisma/client/runtime/wasm-compiler-edge"
 import type * as $Enums from "../enums"
 import type * as Prisma from "../internal/prismaNamespace"
 
@@ -199,6 +199,7 @@ export type UserWhereInput = {
   createdAt?: Prisma.DateTimeFilter<"User"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"User"> | Date | string
   favorites?: Prisma.FavoriteListRelationFilter
+  supportMessages?: Prisma.SupportMessageListRelationFilter
 }
 
 export type UserOrderByWithRelationInput = {
@@ -210,6 +211,7 @@ export type UserOrderByWithRelationInput = {
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   favorites?: Prisma.FavoriteOrderByRelationAggregateInput
+  supportMessages?: Prisma.SupportMessageOrderByRelationAggregateInput
 }
 
 export type UserWhereUniqueInput = Prisma.AtLeast<{
@@ -224,6 +226,7 @@ export type UserWhereUniqueInput = Prisma.AtLeast<{
   createdAt?: Prisma.DateTimeFilter<"User"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"User"> | Date | string
   favorites?: Prisma.FavoriteListRelationFilter
+  supportMessages?: Prisma.SupportMessageListRelationFilter
 }, "id" | "email">
 
 export type UserOrderByWithAggregationInput = {
@@ -261,6 +264,7 @@ export type UserCreateInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   favorites?: Prisma.FavoriteCreateNestedManyWithoutUserInput
+  supportMessages?: Prisma.SupportMessageCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateInput = {
@@ -272,6 +276,7 @@ export type UserUncheckedCreateInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   favorites?: Prisma.FavoriteUncheckedCreateNestedManyWithoutUserInput
+  supportMessages?: Prisma.SupportMessageUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserUpdateInput = {
@@ -283,6 +288,7 @@ export type UserUpdateInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   favorites?: Prisma.FavoriteUpdateManyWithoutUserNestedInput
+  supportMessages?: Prisma.SupportMessageUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateInput = {
@@ -294,6 +300,7 @@ export type UserUncheckedUpdateInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   favorites?: Prisma.FavoriteUncheckedUpdateManyWithoutUserNestedInput
+  supportMessages?: Prisma.SupportMessageUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateManyInput = {
@@ -361,6 +368,11 @@ export type UserScalarRelationFilter = {
   isNot?: Prisma.UserWhereInput
 }
 
+export type UserNullableScalarRelationFilter = {
+  is?: Prisma.UserWhereInput | null
+  isNot?: Prisma.UserWhereInput | null
+}
+
 export type StringFieldUpdateOperationsInput = {
   set?: string
 }
@@ -387,6 +399,22 @@ export type UserUpdateOneRequiredWithoutFavoritesNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutFavoritesInput, Prisma.UserUpdateWithoutFavoritesInput>, Prisma.UserUncheckedUpdateWithoutFavoritesInput>
 }
 
+export type UserCreateNestedOneWithoutSupportMessagesInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutSupportMessagesInput, Prisma.UserUncheckedCreateWithoutSupportMessagesInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutSupportMessagesInput
+  connect?: Prisma.UserWhereUniqueInput
+}
+
+export type UserUpdateOneWithoutSupportMessagesNestedInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutSupportMessagesInput, Prisma.UserUncheckedCreateWithoutSupportMessagesInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutSupportMessagesInput
+  upsert?: Prisma.UserUpsertWithoutSupportMessagesInput
+  disconnect?: Prisma.UserWhereInput | boolean
+  delete?: Prisma.UserWhereInput | boolean
+  connect?: Prisma.UserWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutSupportMessagesInput, Prisma.UserUpdateWithoutSupportMessagesInput>, Prisma.UserUncheckedUpdateWithoutSupportMessagesInput>
+}
+
 export type UserCreateWithoutFavoritesInput = {
   id?: string
   name: string
@@ -395,6 +423,7 @@ export type UserCreateWithoutFavoritesInput = {
   role?: $Enums.Role
   createdAt?: Date | string
   updatedAt?: Date | string
+  supportMessages?: Prisma.SupportMessageCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutFavoritesInput = {
@@ -405,6 +434,7 @@ export type UserUncheckedCreateWithoutFavoritesInput = {
   role?: $Enums.Role
   createdAt?: Date | string
   updatedAt?: Date | string
+  supportMessages?: Prisma.SupportMessageUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutFavoritesInput = {
@@ -431,6 +461,7 @@ export type UserUpdateWithoutFavoritesInput = {
   role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  supportMessages?: Prisma.SupportMessageUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutFavoritesInput = {
@@ -441,6 +472,67 @@ export type UserUncheckedUpdateWithoutFavoritesInput = {
   role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  supportMessages?: Prisma.SupportMessageUncheckedUpdateManyWithoutUserNestedInput
+}
+
+export type UserCreateWithoutSupportMessagesInput = {
+  id?: string
+  name: string
+  email: string
+  passwordHash: string
+  role?: $Enums.Role
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  favorites?: Prisma.FavoriteCreateNestedManyWithoutUserInput
+}
+
+export type UserUncheckedCreateWithoutSupportMessagesInput = {
+  id?: string
+  name: string
+  email: string
+  passwordHash: string
+  role?: $Enums.Role
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  favorites?: Prisma.FavoriteUncheckedCreateNestedManyWithoutUserInput
+}
+
+export type UserCreateOrConnectWithoutSupportMessagesInput = {
+  where: Prisma.UserWhereUniqueInput
+  create: Prisma.XOR<Prisma.UserCreateWithoutSupportMessagesInput, Prisma.UserUncheckedCreateWithoutSupportMessagesInput>
+}
+
+export type UserUpsertWithoutSupportMessagesInput = {
+  update: Prisma.XOR<Prisma.UserUpdateWithoutSupportMessagesInput, Prisma.UserUncheckedUpdateWithoutSupportMessagesInput>
+  create: Prisma.XOR<Prisma.UserCreateWithoutSupportMessagesInput, Prisma.UserUncheckedCreateWithoutSupportMessagesInput>
+  where?: Prisma.UserWhereInput
+}
+
+export type UserUpdateToOneWithWhereWithoutSupportMessagesInput = {
+  where?: Prisma.UserWhereInput
+  data: Prisma.XOR<Prisma.UserUpdateWithoutSupportMessagesInput, Prisma.UserUncheckedUpdateWithoutSupportMessagesInput>
+}
+
+export type UserUpdateWithoutSupportMessagesInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
+  role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  favorites?: Prisma.FavoriteUpdateManyWithoutUserNestedInput
+}
+
+export type UserUncheckedUpdateWithoutSupportMessagesInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
+  role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  favorites?: Prisma.FavoriteUncheckedUpdateManyWithoutUserNestedInput
 }
 
 
@@ -450,10 +542,12 @@ export type UserUncheckedUpdateWithoutFavoritesInput = {
 
 export type UserCountOutputType = {
   favorites: number
+  supportMessages: number
 }
 
 export type UserCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   favorites?: boolean | UserCountOutputTypeCountFavoritesArgs
+  supportMessages?: boolean | UserCountOutputTypeCountSupportMessagesArgs
 }
 
 /**
@@ -473,6 +567,13 @@ export type UserCountOutputTypeCountFavoritesArgs<ExtArgs extends runtime.Types.
   where?: Prisma.FavoriteWhereInput
 }
 
+/**
+ * UserCountOutputType without action
+ */
+export type UserCountOutputTypeCountSupportMessagesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.SupportMessageWhereInput
+}
+
 
 export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
@@ -483,6 +584,7 @@ export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = r
   createdAt?: boolean
   updatedAt?: boolean
   favorites?: boolean | Prisma.User$favoritesArgs<ExtArgs>
+  supportMessages?: boolean | Prisma.User$supportMessagesArgs<ExtArgs>
   _count?: boolean | Prisma.UserCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["user"]>
 
@@ -519,6 +621,7 @@ export type UserSelectScalar = {
 export type UserOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "name" | "email" | "passwordHash" | "role" | "createdAt" | "updatedAt", ExtArgs["result"]["user"]>
 export type UserInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   favorites?: boolean | Prisma.User$favoritesArgs<ExtArgs>
+  supportMessages?: boolean | Prisma.User$supportMessagesArgs<ExtArgs>
   _count?: boolean | Prisma.UserCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type UserIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {}
@@ -528,6 +631,7 @@ export type $UserPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs =
   name: "User"
   objects: {
     favorites: Prisma.$FavoritePayload<ExtArgs>[]
+    supportMessages: Prisma.$SupportMessagePayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -932,6 +1036,7 @@ readonly fields: UserFieldRefs;
 export interface Prisma__UserClient<T, Null = never, ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
   readonly [Symbol.toStringTag]: "PrismaPromise"
   favorites<T extends Prisma.User$favoritesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$favoritesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$FavoritePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  supportMessages<T extends Prisma.User$supportMessagesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$supportMessagesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$SupportMessagePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -1382,6 +1487,30 @@ export type User$favoritesArgs<ExtArgs extends runtime.Types.Extensions.Internal
   take?: number
   skip?: number
   distinct?: Prisma.FavoriteScalarFieldEnum | Prisma.FavoriteScalarFieldEnum[]
+}
+
+/**
+ * User.supportMessages
+ */
+export type User$supportMessagesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the SupportMessage
+   */
+  select?: Prisma.SupportMessageSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the SupportMessage
+   */
+  omit?: Prisma.SupportMessageOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.SupportMessageInclude<ExtArgs> | null
+  where?: Prisma.SupportMessageWhereInput
+  orderBy?: Prisma.SupportMessageOrderByWithRelationInput | Prisma.SupportMessageOrderByWithRelationInput[]
+  cursor?: Prisma.SupportMessageWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.SupportMessageScalarFieldEnum | Prisma.SupportMessageScalarFieldEnum[]
 }
 
 /**

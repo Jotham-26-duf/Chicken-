@@ -1,8 +1,9 @@
+
 import { prisma } from "../lib/prisma";
 import HomeClient from "./components/HomeClient";
 
 export default async function Home() {
-  const [movies, genres] = await Promise.all([
+  const [movies, genres, series] = await Promise.all([
     prisma.movie.findMany({
       include: {
         genres: {
@@ -21,12 +22,20 @@ export default async function Home() {
         name: "asc",
       },
     }),
+
+    prisma.series.findMany({
+      orderBy: {
+        createdAt: "desc",
+      },
+    }),
   ]);
 
   return (
     <HomeClient
       movies={movies}
       genres={genres}
+      series={series}
     />
   );
 }
+
