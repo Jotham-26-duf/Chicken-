@@ -12,52 +12,16 @@ function isValidUrl(value: string) {
   }
 }
 
-/*
-|--------------------------------------------------------------------------
-| CREATE MOVIE
-|--------------------------------------------------------------------------
-*/
-
 export async function POST(request: Request) {
   try {
-    /*
-    |--------------------------------------------------------------------------
-    | Authentication
-    |--------------------------------------------------------------------------
-    */
-
     const session = await getServerSession(authOptions);
 
-    if (!session?.user) {
+    if (!session?.user || session.user.role !== "ADMIN") {
       return NextResponse.json(
-        {
-          error: "You must be logged in.",
-        },
+        { error: "Unauthorized" },
         { status: 401 }
       );
     }
-
-    /*
-    |--------------------------------------------------------------------------
-    | Admin authorization
-    |--------------------------------------------------------------------------
-    */
-
-    if (session.user.role !== "ADMIN") {
-      return NextResponse.json(
-        {
-          error:
-            "You are not authorized to perform this action.",
-        },
-        { status: 403 }
-      );
-    }
-
-    /*
-    |--------------------------------------------------------------------------
-    | Read request body
-    |--------------------------------------------------------------------------
-    */
 
     const body = await request.json();
 
@@ -74,31 +38,9 @@ export async function POST(request: Request) {
       type,
       streamUrl,
       downloadUrl,
+      downloads,
       genreIds,
     } = body;
-
-    /*
-    |--------------------------------------------------------------------------
-    | Clean genre IDs
-    |--------------------------------------------------------------------------
-    */
-
-    const uniqueGenreIds = [
-      ...new Set(
-        Array.isArray(genreIds)
-          ? genreIds.filter(
-              (genreId): genreId is string =>
-                typeof genreId === "string"
-            )
-          : []
-      ),
-    ];
-
-    /*
-    |--------------------------------------------------------------------------
-    | Validate required fields
-    |--------------------------------------------------------------------------
-    */
 
     if (
       !title ||
@@ -113,26 +55,12 @@ export async function POST(request: Request) {
       !type
     ) {
       return NextResponse.json(
-        {
-          error:
-            "Please fill in all required fields.",
-        },
+        { error: "Please fill in all required fields." },
         { status: 400 }
       );
     }
 
-    /*
-    |--------------------------------------------------------------------------
-    | Validate slug
-    |--------------------------------------------------------------------------
-    */
-
-    if (
-      typeof slug !== "string" ||
-      !/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(
-        slug.trim()
-      )
-    ) {
+    if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(slug)) {
       return NextResponse.json(
         {
           error:
@@ -142,110 +70,89 @@ export async function POST(request: Request) {
       );
     }
 
-    /*
-    |--------------------------------------------------------------------------
-    | Validate year
-    |--------------------------------------------------------------------------
-    */
-
-    if (
-      typeof year !== "string" ||
-      !/^\d{4}$/.test(year.trim())
-    ) {
+    if (!/^\d{4}$/.test(String(year))) {
       return NextResponse.json(
-        {
-          error:
-            "Year must contain exactly 4 digits.",
-        },
+        { error: "Year must contain exactly 4 digits." },
         { status: 400 }
       );
     }
 
-    /*
-    |--------------------------------------------------------------------------
-    | Validate image URL
-    |--------------------------------------------------------------------------
-    */
-
-    if (
-      typeof image !== "string" ||
-      !isValidUrl(image.trim())
-    ) {
+    if (!isValidUrl(image)) {
       return NextResponse.json(
-        {
-          error: "Image must be a valid URL.",
-        },
+        { error: "Please provide a valid image URL." },
         { status: 400 }
       );
     }
-
-    /*
-    |--------------------------------------------------------------------------
-    | Validate stream URL
-    |--------------------------------------------------------------------------
-    */
 
     if (
       streamUrl &&
-      (typeof streamUrl !== "string" ||
-        !isValidUrl(streamUrl.trim()))
+      !isValidUrl(String(streamUrl))
     ) {
       return NextResponse.json(
-        {
-          error:
-            "Stream URL must be a valid URL.",
-        },
+        { error: "Please provide a valid stream URL." },
         { status: 400 }
       );
     }
-
-    /*
-    |--------------------------------------------------------------------------
-    | Validate download URL
-    |--------------------------------------------------------------------------
-    */
 
     if (
       downloadUrl &&
-      (typeof downloadUrl !== "string" ||
-        !isValidUrl(downloadUrl.trim()))
+      !isValidUrl(String(downloadUrl))
     ) {
       return NextResponse.json(
         {
           error:
-            "Download URL must be a valid URL.",
+            "Please provide a valid legacy download URL.",
         },
         { status: 400 }
       );
     }
 
-    /*
-    |--------------------------------------------------------------------------
-    | Validate genres
-    |--------------------------------------------------------------------------
-    */
-
-    if (uniqueGenreIds.length === 0) {
+    if (!Array.isArray(genreIds) || genreIds.length === 0) {
       return NextResponse.json(
-        {
-          error:
-            "Please select at least one genre.",
-        },
+        { error: "Please select at least one genre." },
         { status: 400 }
       );
     }
 
-    /*
-    |--------------------------------------------------------------------------
-    | Check duplicate slug
-    |--------------------------------------------------------------------------
-    */
+    const cleanedDownloads = Array.isArray(downloads)
+      ? downloads
+          .map((download: unknown) => {
+            const item = download as {
+              part?: unknown;
+              url?: unknown;
+            };
+
+            return {
+              part:
+                typeof item.part === "string"
+                  ? item.part.trim()
+                  : "",
+              url:
+                typeof item.url === "string"
+                  ? item.url.trim()
+                  : "",
+            };
+          })
+          .filter(
+            (download: { part: string; url: string }) =>
+              download.part && download.url
+          )
+      : [];
+
+    for (const download of cleanedDownloads) {
+      if (!isValidUrl(download.url)) {
+        return NextResponse.json(
+          {
+            error: `Invalid download URL for ${download.part}.`,
+          },
+          { status: 400 }
+        );
+      }
+    }
 
     const existingMovie =
       await prisma.movie.findUnique({
-        where: {
-          slug: slug.trim(),
-        },
+        where: { slug },
       });
 
     if (existingMovie) {
@@ -258,121 +165,96 @@ export async function POST(request: Request) {
       );
     }
 
-    /*
-    |--------------------------------------------------------------------------
-    | Check genres
-    |--------------------------------------------------------------------------
-    */
-
-    const existingGenres =
-      await prisma.genre.findMany({
-        where: {
-          id: {
-            in: uniqueGenreIds,
-          },
+    const genres = await prisma.genre.findMany({
+      where: {
+        id: {
+          in: genreIds,
         },
-        select: {
-          id: true,
-        },
-      });
+      },
+      select: {
+        id: true,
+      },
+    });
 
-    if (
-      existingGenres.length !==
-      uniqueGenreIds.length
-    ) {
+    if (genres.length !== genreIds.length) {
       return NextResponse.json(
-        {
-          error:
-            "One or more selected genres do not exist.",
-        },
+        { error: "One or more selected genres are invalid." },
         { status: 400 }
       );
     }
 
-    /*
-    |--------------------------------------------------------------------------
-    | Create movie
-    |--------------------------------------------------------------------------
-    */
-
     const movie = await prisma.movie.create({
       data: {
-        title: title.trim(),
-        slug: slug.trim(),
-        year: year.trim(),
-        rating: rating.trim(),
-        image: image.trim(),
-        description: description.trim(),
-        explainer: explainer.trim(),
-        translator: translator.trim(),
-        language: language.trim(),
-        type: type.trim(),
+        title: String(title).trim(),
+        slug: String(slug).trim(),
+        year: String(year).trim(),
+        rating: String(rating).trim(),
+        image: String(image).trim(),
+        description: String(description).trim(),
+        explainer: String(explainer).trim(),
+        translator: String(translator).trim(),
+        language: String(language).trim(),
+        type: String(type).trim(),
+        streamUrl: streamUrl
+          ? String(streamUrl).trim()
+          : null,
 
-        streamUrl:
-          typeof streamUrl === "string"
-            ? streamUrl.trim() || null
-            : null,
-
+        // Keep old field for backward compatibility.
+        // New movies should use MovieDownload records.
         downloadUrl:
-          typeof downloadUrl === "string"
-            ? downloadUrl.trim() || null
+          cleanedDownloads.length > 0
+            ? null
+            : downloadUrl
+            ? String(downloadUrl).trim()
             : null,
+
+        isFeatured: false,
+
+        genres: {
+          create: genreIds.map((genreId: string) => ({
+            genre: {
+              connect: {
+                id: genreId,
+              },
+            },
+          })),
+        },
+
+        downloads: {
+          create: cleanedDownloads.map(
+            (download: {
+              part: string;
+              url: string;
+            }) => ({
+              part: download.part,
+              url: download.url,
+            })
+          ),
+        },
+      },
+
+      include: {
+        genres: {
+          include: {
+            genre: true,
+          },
+        },
+        downloads: true,
       },
     });
 
-    /*
-    |--------------------------------------------------------------------------
-    | Create movie-genre relationships
-    |--------------------------------------------------------------------------
-    */
-
-    await prisma.movieGenre.createMany({
-      data: uniqueGenreIds.map((genreId) => ({
-        movieId: movie.id,
-        genreId,
-      })),
-    });
-
-    /*
-    |--------------------------------------------------------------------------
-    | Get created movie with genres
-    |--------------------------------------------------------------------------
-    */
-
-    const createdMovie =
-      await prisma.movie.findUnique({
-        where: {
-          id: movie.id,
-        },
-        include: {
-          genres: {
-            include: {
-              genre: true,
-            },
-          },
-        },
-      });
-
-    /*
-    |--------------------------------------------------------------------------
-    | Success
-    |--------------------------------------------------------------------------
-    */
-
     return NextResponse.json(
-      createdMovie,
+      { movie },
       { status: 201 }
     );
   } catch (error) {
-    console.error("Create movie error:", error);
+    console.error(
+      "POST /api/admin/movies error:",
+      error
+    );
 
     return NextResponse.json(
-      {
-        error:
-          error instanceof Error
-            ? error.message
-            : "Failed to create movie.",
-      },
+      { error: "Failed to create movie." },
       { status: 500 }
     );
   }

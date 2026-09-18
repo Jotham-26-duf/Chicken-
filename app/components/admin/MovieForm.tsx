@@ -1,11 +1,17 @@
+
 "use client";
 
-import { FormEvent, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useState } from "react";
 
 interface Genre {
   id: string;
   name: string;
+}
+
+interface MovieDownload {
+  id?: string;
+  part: string;
+  url: string;
 }
 
 interface MovieFormData {
@@ -23,12 +29,13 @@ interface MovieFormData {
   streamUrl: string;
   downloadUrl: string;
   genreIds: string[];
+  downloads?: MovieDownload[];
 }
 
 interface MovieFormProps {
   mode: "create" | "edit";
   genres: Genre[];
-  initialData?: MovieFormData;
+  initialData?: Partial<MovieFormData>;
 }
 
 const emptyForm: MovieFormData = {
@@ -45,6 +52,7 @@ const emptyForm: MovieFormData = {
   streamUrl: "",
   downloadUrl: "",
   genreIds: [],
+  downloads: [],
 };
 
 export default function MovieForm({
@@ -52,11 +60,12 @@ export default function MovieForm({
   genres,
   initialData,
 }: MovieFormProps) {
-  const router = useRouter();
-
-  const [form, setForm] = useState<MovieFormData>(
-    initialData || emptyForm
-  );
+  const [form, setForm] = useState<MovieFormData>({
+    ...emptyForm,
+    ...initialData,
+    genreIds: initialData?.genreIds ?? [],
+    downloads: initialData?.downloads ?? [],
+  });
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -64,86 +73,103 @@ export default function MovieForm({
 
   function updateField(
     field: keyof MovieFormData,
-    value: string
+    value: string | string[]
   ) {
-    setForm((previous) => ({
-      ...previous,
+    setForm((current) => ({
+      ...current,
       [field]: value,
     }));
   }
 
-  function toggleGenre(genreId: string) {
-    setForm((previous) => {
-      const alreadySelected =
-        previous.genreIds.includes(genreId);
+  function addDownloadPart() {
+    setForm((current) => {
+      const downloads = current.downloads ?? [];
+
+      const nextPartNumber = downloads.length + 1;
+
+      const nextPart = String.fromCharCode(
+        64 + nextPartNumber
+      );
 
       return {
-        ...previous,
-        genreIds: alreadySelected
-          ? previous.genreIds.filter(
-              (id) => id !== genreId
-            )
-          : [...previous.genreIds, genreId],
+        ...current,
+        downloads: [
+          ...downloads,
+          {
+            part: `Part ${nextPart}`,
+            url: "",
+          },
+        ],
       };
     });
   }
 
-  function createSlug(title: string) {
-    return title
-      .toLowerCase()
-      .trim()
-      .replace(/[^a-z0-9\s-]/g, "")
-      .replace(/\s+/g, "-")
-      .replace(/-+/g, "-");
+  function updateDownloadPart(
+    index: number,
+    field: keyof MovieDownload,
+    value: string
+  ) {
+    setForm((current) => {
+      const downloads = [...(current.downloads ?? [])];
+
+      downloads[index] = {
+        ...downloads[index],
+        [field]: value,
+      };
+
+      return {
+        ...current,
+        downloads,
+      };
+    });
   }
 
-  function handleTitleChange(value: string) {
-    setForm((previous) => ({
-      ...previous,
-      title: value,
-      ...(mode === "create"
-        ? { slug: createSlug(value) }
-        : {}),
+  function removeDownloadPart(index: number) {
+    setForm((current) => ({
+      ...current,
+      downloads: (current.downloads ?? []).filter(
+        (_, downloadIndex) => downloadIndex !== index
+      ),
     }));
   }
 
+  function toggleGenre(genreId: string) {
+    setForm((current) => {
+      const exists = current.genreIds.includes(genreId);
+
+      return {
+        ...current,
+        genreIds: exists
+          ? current.genreIds.filter((id) => id !== genreId)
+          : [...current.genreIds, genreId],
+      };
+    });
+  }
+
   async function handleSubmit(
-    event: FormEvent<HTMLFormElement>
+    event: React.FormEvent<HTMLFormElement>
   ) {
     event.preventDefault();
 
+    setLoading(true);
     setError("");
     setSuccess("");
-    setLoading(true);
+
+    const cleanedDownloads = (form.downloads ?? [])
+      .map((download) => ({
+        part: download.part.trim(),
+        url: download.url.trim(),
+      }))
+      .filter((download) => download.part && download.url);
+
+    const payload = {
+      ...form,
+      streamUrl: form.streamUrl.trim(),
+      downloadUrl: form.downloadUrl.trim(),
+      downloads: cleanedDownloads,
+    };
 
     try {
-      const cleanedGenreIds = [
-        ...new Set(form.genreIds),
-      ];
-
-      if (cleanedGenreIds.length === 0) {
-        throw new Error(
-          "Please select at least one genre."
-        );
-      }
-
-      const payload = {
-        ...form,
-        title: form.title.trim(),
-        slug: form.slug.trim(),
-        year: form.year.trim(),
-        rating: form.rating.trim(),
-        image: form.image.trim(),
-        description: form.description.trim(),
-        explainer: form.explainer.trim(),
-        translator: form.translator.trim(),
-        language: form.language.trim(),
-        type: form.type.trim(),
-        streamUrl: form.streamUrl.trim(),
-        downloadUrl: form.downloadUrl.trim(),
-        genreIds: cleanedGenreIds,
-      };
-
       const url =
         mode === "create"
           ? "/api/admin/movies"
@@ -157,25 +183,17 @@ export default function MovieForm({
         body: JSON.stringify(payload),
       });
 
-      // Read the response as text first.
-      // This prevents "Unexpected end of JSON input"
-      // when the server returns an empty response.
       const responseText = await response.text();
 
       let data: {
+        movie?: MovieFormData;
         error?: string;
-        message?: string;
       } = {};
 
       if (responseText) {
         try {
           data = JSON.parse(responseText);
         } catch {
-          console.error(
-            "Server returned non-JSON response:",
-            responseText
-          );
-
           throw new Error(
             `Server returned an invalid response (${response.status}).`
           );
@@ -185,12 +203,9 @@ export default function MovieForm({
       if (!response.ok) {
         throw new Error(
           data.error ||
-            data.message ||
             `Failed to ${
-              mode === "create"
-                ? "create"
-                : "update"
-            } movie.`
+              mode === "create" ? "create" : "update"
+            } movie (${response.status}).`
         );
       }
 
@@ -200,16 +215,15 @@ export default function MovieForm({
           : "Movie updated successfully."
       );
 
-      setTimeout(() => {
-        router.push("/admin/movies");
-        router.refresh();
-      }, 800);
-    } catch (error) {
-      console.error("Movie form error:", error);
+      if (mode === "create") {
+        setForm(emptyForm);
+      }
+    } catch (submitError) {
+      console.error("Movie form error:", submitError);
 
       setError(
-        error instanceof Error
-          ? error.message
+        submitError instanceof Error
+          ? submitError.message
           : "Something went wrong."
       );
     } finally {
@@ -223,227 +237,145 @@ export default function MovieForm({
       className="space-y-8"
     >
       {error && (
-        <div className="rounded-lg border border-red-500/30 bg-red-500/10 p-4 text-sm text-red-400">
+        <div className="rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-400">
           {error}
         </div>
       )}
 
       {success && (
-        <div className="rounded-lg border border-green-500/30 bg-green-500/10 p-4 text-sm text-green-400">
+        <div className="rounded-xl border border-green-500/30 bg-green-500/10 px-4 py-3 text-sm text-green-400">
           {success}
         </div>
       )}
 
-      {/* Basic information */}
-      <section className="rounded-xl border border-white/10 bg-[#181818] p-6">
-        <h2 className="mb-6 text-xl font-semibold">
+      {/* BASIC INFORMATION */}
+
+      <section className="rounded-2xl border border-white/10 bg-[#1B1B1B] p-6">
+        <h2 className="text-lg font-bold text-white">
           Basic Information
         </h2>
 
-        <div className="grid gap-6 md:grid-cols-2">
-          <div className="md:col-span-2">
-            <label className="mb-2 block text-sm font-medium">
-              Movie Title *
+        <div className="mt-5 grid gap-5 md:grid-cols-2">
+          <div>
+            <label className="mb-2 block text-sm font-medium text-[#AAAAAA]">
+              Movie Title
             </label>
 
             <input
               type="text"
               value={form.title}
               onChange={(event) =>
-                handleTitleChange(
-                  event.target.value
-                )
+                updateField("title", event.target.value)
               }
-              placeholder="e.g. The Great Adventure"
               required
-              className="w-full rounded-lg border border-white/10 bg-[#101010] px-4 py-3 text-white outline-none transition focus:border-[#00E5FF]"
+              className="w-full rounded-xl border border-white/10 bg-[#2A2A2A] px-4 py-3 text-white outline-none focus:border-[#2979FF]"
+              placeholder="Movie title"
             />
           </div>
 
           <div>
-            <label className="mb-2 block text-sm font-medium">
-              Slug *
+            <label className="mb-2 block text-sm font-medium text-[#AAAAAA]">
+              Slug
             </label>
 
             <input
               type="text"
               value={form.slug}
               onChange={(event) =>
-                updateField(
-                  "slug",
-                  event.target.value
-                )
+                updateField("slug", event.target.value)
               }
-              placeholder="the-great-adventure"
               required
-              className="w-full rounded-lg border border-white/10 bg-[#101010] px-4 py-3 text-white outline-none focus:border-[#00E5FF]"
+              className="w-full rounded-xl border border-white/10 bg-[#2A2A2A] px-4 py-3 text-white outline-none focus:border-[#2979FF]"
+              placeholder="movie-title"
             />
-
-            <p className="mt-2 text-xs text-[#888]">
-              Use lowercase letters, numbers and
-              hyphens only.
-            </p>
           </div>
 
           <div>
-            <label className="mb-2 block text-sm font-medium">
-              Year *
+            <label className="mb-2 block text-sm font-medium text-[#AAAAAA]">
+              Year
             </label>
 
             <input
               type="text"
-              inputMode="numeric"
-              maxLength={4}
               value={form.year}
               onChange={(event) =>
-                updateField(
-                  "year",
-                  event.target.value
-                )
+                updateField("year", event.target.value)
               }
-              placeholder="2026"
               required
-              className="w-full rounded-lg border border-white/10 bg-[#101010] px-4 py-3 text-white outline-none focus:border-[#00E5FF]"
+              className="w-full rounded-xl border border-white/10 bg-[#2A2A2A] px-4 py-3 text-white outline-none focus:border-[#2979FF]"
+              placeholder="2026"
             />
           </div>
 
           <div>
-            <label className="mb-2 block text-sm font-medium">
-              Rating *
+            <label className="mb-2 block text-sm font-medium text-[#AAAAAA]">
+              Rating
             </label>
 
             <input
               type="text"
               value={form.rating}
               onChange={(event) =>
-                updateField(
-                  "rating",
-                  event.target.value
-                )
+                updateField("rating", event.target.value)
               }
+              required
+              className="w-full rounded-xl border border-white/10 bg-[#2A2A2A] px-4 py-3 text-white outline-none focus:border-[#2979FF]"
               placeholder="8.5"
-              required
-              className="w-full rounded-lg border border-white/10 bg-[#101010] px-4 py-3 text-white outline-none focus:border-[#00E5FF]"
             />
-          </div>
-
-          <div>
-            <label className="mb-2 block text-sm font-medium">
-              Language *
-            </label>
-
-            <input
-              type="text"
-              value={form.language}
-              onChange={(event) =>
-                updateField(
-                  "language",
-                  event.target.value
-                )
-              }
-              placeholder="Kinyarwanda"
-              required
-              className="w-full rounded-lg border border-white/10 bg-[#101010] px-4 py-3 text-white outline-none focus:border-[#00E5FF]"
-            />
-          </div>
-
-          <div>
-            <label className="mb-2 block text-sm font-medium">
-              Type *
-            </label>
-
-            <select
-              value={form.type}
-              onChange={(event) =>
-                updateField(
-                  "type",
-                  event.target.value
-                )
-              }
-              required
-              className="w-full rounded-lg border border-white/10 bg-[#101010] px-4 py-3 text-white outline-none focus:border-[#00E5FF]"
-            >
-              <option value="">
-                Select type
-              </option>
-
-              <option value="Movie">
-                Movie
-              </option>
-
-              <option value="Series">
-                Series
-              </option>
-
-              <option value="Documentary">
-                Documentary
-              </option>
-
-              <option value="Animation">
-                Animation
-              </option>
-
-              <option value="Other">
-                Other
-              </option>
-            </select>
           </div>
         </div>
       </section>
 
-      {/* Image */}
-      <section className="rounded-xl border border-white/10 bg-[#181818] p-6">
-        <h2 className="mb-6 text-xl font-semibold">
-          Movie Image
+      {/* IMAGE */}
+
+      <section className="rounded-2xl border border-white/10 bg-[#1B1B1B] p-6">
+        <h2 className="text-lg font-bold text-white">
+          Image
         </h2>
 
-        <label className="mb-2 block text-sm font-medium">
-          Image URL *
-        </label>
+        <div className="mt-5">
+          <label className="mb-2 block text-sm font-medium text-[#AAAAAA]">
+            Poster Image Name
+          </label>
 
-        <input
-          type="url"
-          value={form.image}
-          onChange={(event) =>
-            updateField(
-              "image",
-              event.target.value
-            )
-          }
-          placeholder="https://example.com/movie.jpg"
-          required
-          className="w-full rounded-lg border border-white/10 bg-[#101010] px-4 py-3 text-white outline-none focus:border-[#00E5FF]"
-        />
+          <input
+            type="text"
+            value={
+              form.image.startsWith("/images/movies/")
+                ? form.image.replace(
+                    "/images/movies/",
+                    ""
+                  )
+                : form.image
+            }
+            onChange={(event) =>
+              updateField(
+                "image",
+                `/images/movies/${event.target.value}`
+              )
+            }
+            required
+            className="w-full rounded-xl border border-white/10 bg-[#2A2A2A] px-4 py-3 text-white outline-none focus:border-[#2979FF]"
+            placeholder="kung-fu-jungle.jpg"
+          />
 
-        {form.image && (
-          <div className="mt-4">
-            <p className="mb-2 text-xs text-[#888]">
-              Preview
-            </p>
-
-            <img
-              src={form.image}
-              alt="Movie preview"
-              className="h-64 w-full rounded-lg object-cover"
-              onError={(event) => {
-                event.currentTarget.style.display =
-                  "none";
-              }}
-            />
-          </div>
-        )}
+          <p className="mt-2 text-xs text-[#777777]">
+            Put the image file inside public/images/movies/
+          </p>
+        </div>
       </section>
 
-      {/* Description */}
-      <section className="rounded-xl border border-white/10 bg-[#181818] p-6">
-        <h2 className="mb-6 text-xl font-semibold">
+      {/* MOVIE DETAILS */}
+
+      <section className="rounded-2xl border border-white/10 bg-[#1B1B1B] p-6">
+        <h2 className="text-lg font-bold text-white">
           Movie Details
         </h2>
 
-        <div className="space-y-6">
+        <div className="mt-5 space-y-5">
           <div>
-            <label className="mb-2 block text-sm font-medium">
-              Description *
+            <label className="mb-2 block text-sm font-medium text-[#AAAAAA]">
+              Description
             </label>
 
             <textarea
@@ -454,16 +386,16 @@ export default function MovieForm({
                   event.target.value
                 )
               }
-              placeholder="Write a description of the movie..."
-              rows={5}
               required
-              className="w-full resize-y rounded-lg border border-white/10 bg-[#101010] px-4 py-3 text-white outline-none focus:border-[#00E5FF]"
+              rows={4}
+              className="w-full resize-none rounded-xl border border-white/10 bg-[#2A2A2A] px-4 py-3 text-white outline-none focus:border-[#2979FF]"
+              placeholder="Movie description..."
             />
           </div>
 
           <div>
-            <label className="mb-2 block text-sm font-medium">
-              Explainer *
+            <label className="mb-2 block text-sm font-medium text-[#AAAAAA]">
+              Explainer
             </label>
 
             <textarea
@@ -474,108 +406,261 @@ export default function MovieForm({
                   event.target.value
                 )
               }
-              placeholder="Who explained or narrated the movie?"
-              rows={3}
               required
-              className="w-full resize-y rounded-lg border border-white/10 bg-[#101010] px-4 py-3 text-white outline-none focus:border-[#00E5FF]"
+              rows={4}
+              className="w-full resize-none rounded-xl border border-white/10 bg-[#2A2A2A] px-4 py-3 text-white outline-none focus:border-[#2979FF]"
+              placeholder="Movie explanation..."
             />
           </div>
 
-          <div>
-            <label className="mb-2 block text-sm font-medium">
-              Translator *
-            </label>
+          <div className="grid gap-5 md:grid-cols-3">
+            <div>
+              <label className="mb-2 block text-sm font-medium text-[#AAAAAA]">
+                Translator
+              </label>
 
-            <input
-              type="text"
-              value={form.translator}
-              onChange={(event) =>
-                updateField(
-                  "translator",
-                  event.target.value
-                )
-              }
-              placeholder="Translator name"
-              required
-              className="w-full rounded-lg border border-white/10 bg-[#101010] px-4 py-3 text-white outline-none focus:border-[#00E5FF]"
-            />
+              <input
+                type="text"
+                value={form.translator}
+                onChange={(event) =>
+                  updateField(
+                    "translator",
+                    event.target.value
+                  )
+                }
+                required
+                className="w-full rounded-xl border border-white/10 bg-[#2A2A2A] px-4 py-3 text-white outline-none focus:border-[#2979FF]"
+              />
+            </div>
+
+            <div>
+              <label className="mb-2 block text-sm font-medium text-[#AAAAAA]">
+                Language
+              </label>
+
+              <input
+                type="text"
+                value={form.language}
+                onChange={(event) =>
+                  updateField(
+                    "language",
+                    event.target.value
+                  )
+                }
+                required
+                className="w-full rounded-xl border border-white/10 bg-[#2A2A2A] px-4 py-3 text-white outline-none focus:border-[#2979FF]"
+              />
+            </div>
+
+            <div>
+              <label className="mb-2 block text-sm font-medium text-[#AAAAAA]">
+                Type
+              </label>
+
+              <input
+                type="text"
+                value={form.type}
+                onChange={(event) =>
+                  updateField(
+                    "type",
+                    event.target.value
+                  )
+                }
+                required
+                className="w-full rounded-xl border border-white/10 bg-[#2A2A2A] px-4 py-3 text-white outline-none focus:border-[#2979FF]"
+                placeholder="Movie"
+              />
+            </div>
           </div>
         </div>
       </section>
 
-      {/* Genres */}
-      <section className="rounded-xl border border-white/10 bg-[#181818] p-6">
-        <h2 className="mb-2 text-xl font-semibold">
+      {/* GENRES */}
+
+      <section className="rounded-2xl border border-white/10 bg-[#1B1B1B] p-6">
+        <h2 className="text-lg font-bold text-white">
           Genres
         </h2>
 
-        <p className="mb-6 text-sm text-[#888]">
-          Select at least one genre.
-        </p>
-
-        <div className="grid gap-3 sm:grid-cols-2 md:grid-cols-3">
+        <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
           {genres.map((genre) => {
-            const selected =
-              form.genreIds.includes(genre.id);
+            const selected = form.genreIds.includes(
+              genre.id
+            );
 
             return (
               <label
                 key={genre.id}
-                className={`cursor-pointer rounded-lg border p-4 transition ${
+                className={`flex cursor-pointer items-center gap-3 rounded-xl border px-4 py-3 transition ${
                   selected
-                    ? "border-[#00E5FF] bg-[#00E5FF]/10"
-                    : "border-white/10 bg-[#101010] hover:border-white/30"
+                    ? "border-[#2979FF] bg-[#2979FF]/10"
+                    : "border-white/10 bg-[#2A2A2A] hover:bg-[#353535]"
                 }`}
               >
-                <div className="flex items-center gap-3">
-                  <input
-                    type="checkbox"
-                    checked={selected}
-                    onChange={() =>
-                      toggleGenre(genre.id)
-                    }
-                    className="h-4 w-4"
-                  />
+                <input
+                  type="checkbox"
+                  checked={selected}
+                  onChange={() =>
+                    toggleGenre(genre.id)
+                  }
+                  className="h-4 w-4"
+                />
 
-                  <span className="text-sm">
-                    {genre.name}
-                  </span>
-                </div>
+                <span className="text-sm text-white">
+                  {genre.name}
+                </span>
               </label>
             );
           })}
         </div>
       </section>
 
-      {/* URLs */}
-      <section className="rounded-xl border border-white/10 bg-[#181818] p-6">
-        <h2 className="mb-6 text-xl font-semibold">
-          Movie Links
-        </h2>
+      {/* MOVIE LINKS */}
 
-        <div className="space-y-6">
-          <div>
-            <label className="mb-2 block text-sm font-medium">
-              Stream URL
-            </label>
+      <section className="rounded-2xl border border-white/10 bg-[#1B1B1B] p-6">
+        <div>
+          <h2 className="text-lg font-bold text-white">
+            Movie Links
+          </h2>
 
-            <input
-              type="url"
-              value={form.streamUrl}
-              onChange={(event) =>
-                updateField(
-                  "streamUrl",
-                  event.target.value
-                )
-              }
-              placeholder="https://example.com/stream"
-              className="w-full rounded-lg border border-white/10 bg-[#101010] px-4 py-3 text-white outline-none focus:border-[#00E5FF]"
-            />
+          <p className="mt-1 text-sm text-[#AAAAAA]">
+            Add the streaming link and one or more
+            download parts.
+          </p>
+        </div>
+
+        <div className="mt-5">
+          <label className="mb-2 block text-sm font-medium text-[#AAAAAA]">
+            Stream URL
+          </label>
+
+          <input
+            type="url"
+            value={form.streamUrl}
+            onChange={(event) =>
+              updateField(
+                "streamUrl",
+                event.target.value
+              )
+            }
+            className="w-full rounded-xl border border-white/10 bg-[#2A2A2A] px-4 py-3 text-white outline-none focus:border-[#2979FF]"
+            placeholder="https://..."
+          />
+        </div>
+
+        {/* DOWNLOAD PARTS */}
+
+        <div className="mt-8">
+          <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-center">
+            <div>
+              <h3 className="font-semibold text-white">
+                Download Parts
+              </h3>
+
+              <p className="mt-1 text-xs text-[#AAAAAA]">
+                Add Part A, Part B, Part C, etc.
+              </p>
+            </div>
+
+            <button
+              type="button"
+              onClick={addDownloadPart}
+              className="rounded-xl bg-[#2979FF] px-4 py-2.5 text-sm font-semibold text-white transition hover:brightness-110"
+            >
+              + Add Download Part
+            </button>
           </div>
 
-          <div>
-            <label className="mb-2 block text-sm font-medium">
-              Download URL
+          <div className="mt-4 space-y-4">
+            {(form.downloads ?? []).map(
+              (download, index) => (
+                <div
+                  key={index}
+                  className="rounded-xl border border-white/10 bg-[#2A2A2A] p-4"
+                >
+                  <div className="flex items-center justify-between gap-3">
+                    <h4 className="font-semibold text-white">
+                      Download Part {index + 1}
+                    </h4>
+
+                    <button
+                      type="button"
+                      onClick={() =>
+                        removeDownloadPart(index)
+                      }
+                      className="rounded-lg px-3 py-1.5 text-xs font-semibold text-red-400 transition hover:bg-red-500/10"
+                    >
+                      Remove
+                    </button>
+                  </div>
+
+                  <div className="mt-4 grid gap-4 md:grid-cols-[180px_1fr]">
+                    <div>
+                      <label className="mb-2 block text-xs font-medium text-[#AAAAAA]">
+                        Part Name
+                      </label>
+
+                      <input
+                        type="text"
+                        value={download.part}
+                        onChange={(event) =>
+                          updateDownloadPart(
+                            index,
+                            "part",
+                            event.target.value
+                          )
+                        }
+                        className="w-full rounded-xl border border-white/10 bg-[#1B1B1B] px-4 py-3 text-sm text-white outline-none focus:border-[#2979FF]"
+                        placeholder="Part A"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="mb-2 block text-xs font-medium text-[#AAAAAA]">
+                        MediaFire Download URL
+                      </label>
+
+                      <input
+                        type="url"
+                        value={download.url}
+                        onChange={(event) =>
+                          updateDownloadPart(
+                            index,
+                            "url",
+                            event.target.value
+                          )
+                        }
+                        className="w-full rounded-xl border border-white/10 bg-[#1B1B1B] px-4 py-3 text-sm text-white outline-none focus:border-[#2979FF]"
+                        placeholder="https://www.mediafire.com/..."
+                      />
+                    </div>
+                  </div>
+                </div>
+              )
+            )}
+          </div>
+
+          {(form.downloads ?? []).length === 0 && (
+            <div className="mt-4 rounded-xl border border-dashed border-white/10 px-5 py-8 text-center">
+              <p className="text-sm text-[#AAAAAA]">
+                No download parts added yet.
+              </p>
+
+              <button
+                type="button"
+                onClick={addDownloadPart}
+                className="mt-3 text-sm font-semibold text-[#2979FF] hover:underline"
+              >
+                + Add Part A
+              </button>
+            </div>
+          )}
+
+          {/* OLD DOWNLOAD URL */}
+
+          <div className="mt-6 border-t border-white/10 pt-5">
+            <label className="mb-2 block text-xs font-medium text-[#AAAAAA]">
+              Legacy Download URL
             </label>
 
             <input
@@ -587,35 +672,28 @@ export default function MovieForm({
                   event.target.value
                 )
               }
-              placeholder="https://example.com/download"
-              className="w-full rounded-lg border border-white/10 bg-[#101010] px-4 py-3 text-white outline-none focus:border-[#00E5FF]"
+              className="w-full rounded-xl border border-white/10 bg-[#2A2A2A] px-4 py-3 text-sm text-white outline-none focus:border-[#2979FF]"
+              placeholder="Used only for older movies"
             />
+
+            <p className="mt-2 text-xs text-[#777777]">
+              You normally don't need this for new movies.
+              Use Download Parts above instead.
+            </p>
           </div>
         </div>
       </section>
 
-      {/* Submit */}
-      <div className="flex justify-end gap-4">
-        <button
-          type="button"
-          onClick={() =>
-            router.push("/admin/movies")
-          }
-          disabled={loading}
-          className="rounded-lg border border-white/10 px-6 py-3 text-sm font-medium text-white transition hover:bg-white/5 disabled:cursor-not-allowed disabled:opacity-50"
-        >
-          Cancel
-        </button>
+      {/* SUBMIT */}
 
+      <div className="flex justify-end">
         <button
           type="submit"
           disabled={loading}
-          className="rounded-lg bg-[#00E5FF] px-8 py-3 text-sm font-bold text-black transition hover:bg-[#00cfe8] disabled:cursor-not-allowed disabled:opacity-50"
+          className="rounded-xl bg-[#2979FF] px-6 py-3 font-semibold text-white transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-50"
         >
           {loading
-            ? mode === "create"
-              ? "Creating..."
-              : "Updating..."
+            ? "Saving..."
             : mode === "create"
             ? "Create Movie"
             : "Update Movie"}

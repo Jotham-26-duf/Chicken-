@@ -1,213 +1,321 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+
 import FavoriteButton from "@/app/components/FavoriteButton";
+import MovieCard from "@/app/components/MovieCard";
+import Navbar from "@/app/components/Navbar";
+import SiteBottom from "@/app/components/SiteBottom";
 import { prisma } from "@/lib/prisma";
 
 interface MovieDetailsPageProps {
-  params: Promise<{
-    slug: string;
-  }>;
+params: Promise<{
+slug: string;
+}>;
 }
 
-export default async function MovieDetailsPage({
-  params,
-}: MovieDetailsPageProps) {
-  const { slug } = await params;
+export const dynamic = "force-dynamic";
 
-  const movie = await prisma.movie.findUnique({
-    where: {
-      slug,
-    },
-    include: {
-      genres: {
-        include: {
-          genre: true,
-        },
-      },
-    },
+export default async function MovieDetailsPage({
+params,
+}: MovieDetailsPageProps) {
+const { slug } = await params;
+
+const movie = await prisma.movie.findUnique({
+where: {
+slug,
+},
+include: {
+genres: {
+include: {
+genre: true,
+},
+},
+downloads: {
+orderBy: {
+createdAt: "asc",
+},
+},
+},
+});
+
+if (!movie) {
+notFound();
+}
+
+const genreNames = movie.genres.map(
+(movieGenre) => movieGenre.genre.name
+);
+
+const genreIds = movie.genres.map(
+(movieGenre) => movieGenre.genreId
+);
+
+/*
+
+* New movies use MovieDownload records.
+*
+* Old movies may still have downloadUrl.
+* We keep supporting that old field.
+  */
+  const downloads =
+  movie.downloads.length > 0
+  ? movie.downloads
+  : movie.downloadUrl
+  ? [
+  {
+  id: "legacy",
+  part: "Download Movie",
+  url: movie.downloadUrl,
+  },
+  ]
+  : [];
+
+/*
+
+* Find movies related to the current movie.
+*
+* When the current movie has genres, we look for other movies
+* sharing at least one of those genres.
+*
+* If it has no genres, we simply show the latest movies.
+  */
+  const relatedMovies = await prisma.movie.findMany({
+  where: {
+  id: {
+  not: movie.id,
+  },
+  ...(genreIds.length > 0
+  ? {
+  genres: {
+  some: {
+  genreId: {
+  in: genreIds,
+  },
+  },
+  },
+  }
+  : {}),
+  },
+  orderBy: {
+  createdAt: "desc",
+  },
+  take: 4,
   });
 
-  if (!movie) {
-    notFound();
-  }
+return ( <main className="min-h-screen bg-[#121212] text-white"> <Navbar />
 
-  const genreNames = movie.genres.map(
-    (movieGenre) => movieGenre.genre.name
-  );
+```
+  {/* ================= MOVIE HERO ================= */}
 
-  return (
-    <main className="min-h-screen bg-[#121212] text-white">
-      {/* Header */}
-      <header className="border-b border-[#2A2A2A] bg-[#121212]">
-        <div className="mx-auto flex h-20 max-w-7xl items-center justify-between px-6">
-          <Link href="/" className="text-2xl font-bold">
-            <span className="text-[#00E5FF]">AG</span>
-            <span className="text-[#E040FB]">TIMES</span>
-          </Link>
+  <section className="border-b border-white/10 bg-[#121212]">
+    <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 sm:py-10 lg:px-8 lg:py-14">
+      <div className="grid gap-8 lg:grid-cols-[280px_1fr] lg:gap-10">
+        {/* POSTER */}
 
-          <div className="flex items-center gap-3">
-            <Link
-              href="/"
-              className="rounded-lg px-4 py-2 text-sm text-gray-300 transition hover:bg-[#2A2A2A] hover:text-white"
-            >
-              Home
-            </Link>
-
-            <Link
-              href="/search"
-              className="rounded-lg px-4 py-2 text-sm text-gray-300 transition hover:bg-[#2A2A2A] hover:text-white"
-            >
-              Search
-            </Link>
-          </div>
+        <div className="mx-auto w-full max-w-[280px] overflow-hidden rounded-2xl bg-[#2A2A2A] shadow-2xl lg:mx-0">
+          <img
+            src={movie.image}
+            alt={movie.title}
+            className="aspect-[2/3] w-full object-cover"
+          />
         </div>
-      </header>
 
-      {/* Movie Details */}
-      <section className="mx-auto max-w-7xl px-6 py-10">
-        <div className="grid gap-10 md:grid-cols-[320px_1fr]">
-          {/* Poster */}
-          <div className="overflow-hidden rounded-2xl bg-[#2A2A2A]">
-            <img
-              src={movie.image}
-              alt={movie.title}
-              className="h-auto w-full object-cover"
-            />
+        {/* INFORMATION */}
+
+        <div className="flex min-w-0 flex-col justify-center">
+          <div className="flex flex-wrap items-center gap-2 text-sm text-[#AAAAAA]">
+            <span>{movie.year}</span>
+
+            <span>•</span>
+
+            <span className="flex items-center gap-1 rounded-md bg-[#5C6BC0] px-2 py-1 text-xs font-semibold text-white">
+              <span className="text-[#FFC107]">★</span>
+              {movie.rating}
+            </span>
+
+            {movie.type && (
+              <>
+                <span>•</span>
+                <span>{movie.type}</span>
+              </>
+            )}
           </div>
 
-          {/* Information */}
-          <div className="flex flex-col justify-center">
-            <div className="mb-4 flex flex-wrap items-center gap-3 text-sm">
-              <span className="rounded-md bg-[#2A2A2A] px-3 py-1 text-gray-300">
-                {movie.year}
-              </span>
+          <h1 className="mt-4 break-words text-3xl font-extrabold tracking-tight sm:text-4xl lg:text-5xl">
+            {movie.title}
+          </h1>
 
-              <span className="rounded-md bg-[#5C6BC0] px-3 py-1 text-white">
-                ⭐ {movie.rating}
-              </span>
-
+          {genreNames.length > 0 && (
+            <div className="mt-4 flex flex-wrap gap-2">
               {genreNames.map((genre) => (
                 <span
                   key={genre}
-                  className="rounded-md bg-[#2A2A2A] px-3 py-1 text-gray-300"
+                  className="rounded-full border border-white/10 bg-[#2A2A2A] px-3 py-1 text-xs font-medium text-[#AAAAAA]"
                 >
                   {genre}
                 </span>
               ))}
             </div>
+          )}
 
-            <h1 className="mb-5 text-4xl font-bold md:text-5xl">
-              {movie.title}
-            </h1>
+          <p className="mt-6 max-w-3xl leading-7 text-[#AAAAAA]">
+            {movie.description}
+          </p>
 
-            <p className="mb-6 max-w-3xl text-lg leading-8 text-gray-300">
-              {movie.description}
-            </p>
+          {/* ACTIONS */}
 
-            <div className="mb-8 grid gap-4 sm:grid-cols-2">
-              <div>
-                <p className="text-sm text-[#AAAAAA]">Translator</p>
-                <p className="font-medium text-white">
-                  {movie.translator}
-                </p>
-              </div>
-
-              <div>
-                <p className="text-sm text-[#AAAAAA]">Language</p>
-                <p className="font-medium text-white">
-                  {movie.language}
-                </p>
-              </div>
-
-              <div>
-                <p className="text-sm text-[#AAAAAA]">Type</p>
-                <p className="font-medium text-white">{movie.type}</p>
-              </div>
-
-              <div>
-                <p className="text-sm text-[#AAAAAA]">Genres</p>
-                <p className="font-medium text-white">
-                  {genreNames.join(" • ")}
-                </p>
-              </div>
-            </div>
-
-            {/* Actions */}
-            <div className="flex flex-wrap gap-4">
+          <div className="mt-8 flex flex-wrap gap-3">
+            {movie.streamUrl && (
               <Link
                 href={`/watch/${movie.slug}`}
-                className="rounded-lg bg-[#2979FF] px-6 py-3 font-semibold text-white transition hover:bg-[#1565C0]"
+                className="inline-flex min-h-11 items-center justify-center rounded-xl bg-[#2979FF] px-6 py-3 font-semibold text-white transition hover:brightness-110"
               >
                 ▶ Watch Now
               </Link>
+            )}
 
-              <FavoriteButton movieId={movie.id} />
-            </div>
+            <FavoriteButton movieId={movie.id} />
           </div>
-        </div>
-      </section>
 
-      {/* Explainer */}
-      <section className="mx-auto max-w-7xl px-6 pb-12">
-        <div className="rounded-2xl bg-[#2A2A2A] p-6 md:p-8">
-          <h2 className="mb-4 text-2xl font-bold">
-            Movie Explainer
-          </h2>
+          {/* DOWNLOADS */}
 
-          <p className="leading-8 text-gray-300">
-            {movie.explainer}
-          </p>
-        </div>
-      </section>
+          <div className="mt-8">
+            <h2 className="text-xl font-bold text-white">
+              Downloads
+            </h2>
 
-      {/* Watch / Trailer */}
-      <section className="mx-auto max-w-7xl px-6 pb-16">
-        <div className="overflow-hidden rounded-2xl bg-black">
-          <div className="flex aspect-video items-center justify-center">
-            <div className="text-center">
-              <div className="mb-4 text-5xl">▶</div>
+            {downloads.length > 0 ? (
+              <div className="mt-4 flex flex-wrap gap-3">
+                {downloads.map((download) => (
+                  <a
+                    key={download.id}
+                    href={download.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-[#E040FB] px-5 py-3 font-semibold text-white transition hover:brightness-110"
+                  >
+                    ↓ {download.part}
+                  </a>
+                ))}
+              </div>
+            ) : (
+              <p className="mt-3 text-sm text-[#777777]">
+                No download is available for this movie yet.
+              </p>
+            )}
+          </div>
 
-              <h2 className="mb-2 text-xl font-semibold">
-                {movie.title}
-              </h2>
+          {/* EXTRA INFORMATION */}
 
-              <p className="text-sm text-gray-400">
-                Watch this movie from the authorized video source.
+          <div className="mt-8 grid gap-5 border-t border-white/10 pt-6 sm:grid-cols-3">
+            <div>
+              <p className="text-xs uppercase tracking-wider text-[#777777]">
+                Language
               </p>
 
-              <Link
-                href={`/watch/${movie.slug}`}
-                className="mt-5 inline-block rounded-lg bg-[#2979FF] px-6 py-3 font-semibold transition hover:bg-[#1565C0]"
-              >
-                Go to Watch Page
-              </Link>
+              <p className="mt-1 break-words font-medium text-white">
+                {movie.language}
+              </p>
+            </div>
+
+            <div>
+              <p className="text-xs uppercase tracking-wider text-[#777777]">
+                Translator
+              </p>
+
+              <p className="mt-1 break-words font-medium text-white">
+                {movie.translator}
+              </p>
+            </div>
+
+            <div>
+              <p className="text-xs uppercase tracking-wider text-[#777777]">
+                Type
+              </p>
+
+              <p className="mt-1 break-words font-medium text-white">
+                {movie.type}
+              </p>
             </div>
           </div>
         </div>
-      </section>
+      </div>
+    </div>
+  </section>
 
-      {/* Footer */}
-      <footer className="border-t border-[#2A2A2A] px-6 py-8">
-        <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-4 text-sm text-gray-500 md:flex-row">
-          <p>© {new Date().getFullYear()} AGTIMES. All rights reserved.</p>
+  {/* ================= EXPLAINER ================= */}
 
-          <div className="flex gap-5">
-            <Link
-              href="/"
-              className="transition hover:text-white"
-            >
-              Home
-            </Link>
+  <section className="border-b border-white/10 bg-[#171717]">
+    <div className="mx-auto max-w-5xl px-4 py-10 sm:px-6 lg:px-8">
+      <h2 className="text-2xl font-bold text-white">
+        Movie Explanation
+      </h2>
 
-            <Link
-              href="/favorites"
-              className="transition hover:text-white"
-            >
-              Favorites
-            </Link>
-          </div>
+      <div className="mt-5 whitespace-pre-line leading-8 text-[#AAAAAA]">
+        {movie.explainer}
+      </div>
+    </div>
+  </section>
+
+  {/* ================= WATCH ================= */}
+
+  {movie.streamUrl && (
+    <section className="bg-[#121212]">
+      <div className="mx-auto max-w-5xl px-4 py-10 sm:px-6 lg:px-8">
+        <div className="rounded-2xl border border-white/10 bg-[#1B1B1B] p-6 text-center sm:p-8">
+          <h2 className="text-2xl font-bold text-white">
+            Ready to Watch?
+          </h2>
+
+          <p className="mt-2 text-sm text-[#AAAAAA]">
+            Start watching {movie.title}.
+          </p>
+
+          <Link
+            href={`/watch/${movie.slug}`}
+            className="mt-6 inline-flex min-h-11 items-center justify-center rounded-xl bg-[#2979FF] px-6 py-3 font-semibold text-white transition hover:brightness-110"
+          >
+            ▶ Watch Movie
+          </Link>
         </div>
-      </footer>
-    </main>
-  );
+      </div>
+    </section>
+  )}
+
+  {/* ================= RELATED MOVIES ================= */}
+
+  {relatedMovies.length > 0 && (
+    <section className="border-t border-white/10 bg-[#121212]">
+      <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8 lg:py-14">
+        <div>
+          <h2 className="text-2xl font-bold text-white sm:text-3xl">
+            Related Movies
+          </h2>
+
+          <p className="mt-2 text-sm text-[#AAAAAA]">
+            Discover more movies you may enjoy.
+          </p>
+        </div>
+
+        <div className="mt-7 grid grid-cols-2 gap-x-4 gap-y-8 sm:grid-cols-3 sm:gap-x-5 lg:grid-cols-4">
+          {relatedMovies.map((relatedMovie) => (
+            <MovieCard
+              key={relatedMovie.id}
+              title={relatedMovie.title}
+              year={relatedMovie.year}
+              rating={relatedMovie.rating}
+              image={relatedMovie.image}
+              slug={relatedMovie.slug}
+            />
+          ))}
+        </div>
+      </div>
+    </section>
+  )}
+
+  <SiteBottom />
+</main>
+
+
+);
 }

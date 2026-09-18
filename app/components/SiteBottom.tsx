@@ -1,7 +1,5 @@
-
 import Link from "next/link";
 import {
-  LogIn,
   Mail,
   MapPin,
   Phone,
@@ -18,20 +16,20 @@ export default function SiteBottom() {
     <>
       {/* ================= SUPPORT & CONTACT ================= */}
 
-      <section className="bg-[#121212] px-4 py-8 sm:px-6 sm:py-10 lg:px-10 lg:py-12">
-        <div className="mx-auto max-w-7xl overflow-hidden rounded-2xl border border-white/10 bg-[#1B1B1B] p-5 sm:p-8 lg:p-10">
+      <section className="px-6 py-10 lg:px-10">
+        <div className="mx-auto max-w-7xl overflow-hidden rounded-2xl border border-white/10 bg-[#1B1B1B] p-8">
           {/* Support Header */}
 
           <div className="text-center">
-            <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-[#2979FF]/20 text-[#2979FF] sm:h-14 sm:w-14">
-              <Mail size={26} className="sm:h-7 sm:w-7" />
+            <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-[#2979FF]/20 text-[#2979FF]">
+              <Mail size={28} />
             </div>
 
-            <h2 className="text-xl font-bold text-white sm:text-2xl">
+            <h2 className="text-2xl font-bold text-white">
               Need Help?
             </h2>
 
-            <p className="mx-auto mt-3 max-w-2xl text-sm leading-6 text-[#AAAAAA] sm:text-base">
+            <p className="mx-auto mt-3 max-w-2xl text-sm leading-6 text-[#AAAAAA]">
               Having trouble watching a movie, opening a series,
               or downloading an episode? Contact AGTIMES and we
               will help you.
@@ -40,25 +38,25 @@ export default function SiteBottom() {
 
           {/* ================= CONTACT DETAILS ================= */}
 
-          <div className="mx-auto mt-7 grid max-w-5xl grid-cols-1 gap-3 sm:mt-8 sm:grid-cols-2 sm:gap-4 lg:grid-cols-4">
+          <div className="mx-auto mt-8 grid max-w-5xl gap-4 sm:grid-cols-2 lg:grid-cols-4">
             {/* WhatsApp Group */}
 
             <a
               href="https://chat.whatsapp.com/J3WZy8GpRpT61LhbugxQBL"
               target="_blank"
               rel="noopener noreferrer"
-              className="group rounded-xl border border-white/10 bg-[#121212] p-4 transition hover:border-[#25D366] hover:bg-[#25D366]/10 sm:p-5"
+              className="group rounded-xl border border-white/10 bg-[#121212] p-5 transition hover:border-[#25D366] hover:bg-[#25D366]/10"
             >
               <SiWhatsapp
-                size={26}
-                className="text-[#25D366] sm:h-7 sm:w-7"
+                size={28}
+                className="text-[#25D366]"
               />
 
-              <h3 className="mt-3 text-sm font-bold text-white sm:text-base">
+              <h3 className="mt-3 font-bold text-white">
                 Join WhatsApp Group
               </h3>
 
-              <p className="mt-1 text-xs leading-5 text-[#AAAAAA] sm:text-sm">
+              <p className="mt-1 text-sm text-[#AAAAAA]">
                 Join the AGTIMES community
               </p>
             </a>
@@ -69,18 +67,18 @@ export default function SiteBottom() {
               href="https://wa.me/250789063094"
               target="_blank"
               rel="noopener noreferrer"
-              className="group rounded-xl border border-white/10 bg-[#121212] p-4 transition hover:border-[#25D366] hover:bg-[#25D366]/10 sm:p-5"
+              className="group rounded-xl border border-white/10 bg-[#121212] p-5 transition hover:border-[#25D366] hover:bg-[#25D366]/10"
             >
               <SiWhatsapp
-                size={26}
-                className="text-[#25D366] sm:h-7 sm:w-7"
+                size={28}
+                className="text-[#25D366]"
               />
 
-              <h3 className="mt-3 text-sm font-bold text-white sm:text-base">
+              <h3 className="mt-3 font-bold text-white">
                 WhatsApp Chat
               </h3>
 
-              <p className="mt-1 text-xs leading-5 text-[#AAAAAA] sm:text-sm">
+              <p className="mt-1 text-sm text-[#AAAAAA]">
                 Chat with us
               </p>
             </a>
@@ -89,18 +87,18 @@ export default function SiteBottom() {
 
             <a
               href="tel:+250789063094"
-              className="group rounded-xl border border-white/10 bg-[#121212] p-4 transition hover:border-[#2979FF] hover:bg-[#2979FF]/10 sm:p-5"
+              className="group rounded-xl border border-white/10 bg-[#121212] p-5 transition hover:border-[#2979FF] hover:bg-[#2979FF]/10"
             >
               <Phone
-                size={26}
-                className="text-[#2979FF] sm:h-7 sm:w-7"
+                size={28}
+                className="text-[#2979FF]"
               />
 
-              <h3 className="mt-3 text-sm font-bold text-white sm:text-base">
+              <h3 className="mt-3 font-bold text-white">
                 Call Us
               </h3>
 
-              <p className="mt-1 text-xs leading-5 text-[#AAAAAA] sm:text-sm">
+              <p className="mt-1 text-sm text-[#AAAAAA]">
                 0789063094
               </p>
             </a>
@@ -109,18 +107,18 @@ export default function SiteBottom() {
 
             <a
               href="mailto:dufitumurengezijotham21@gmail.com"
-              className="group rounded-xl border border-white/10 bg-[#121212] p-4 transition hover:border-[#E040FB] hover:bg-[#E040FB]/10 sm:p-5"
+              className="group rounded-xl border border-white/10 bg-[#121212] p-5 transition hover:border-[#E040FB] hover:bg-[#E040FB]/10"
             >
               <Mail
-                size={26}
-                className="text-[#E040FB] sm:h-7 sm:w-7"
+                size={28}
+                className="text-[#E040FB]"
               />
 
-              <h3 className="mt-3 text-sm font-bold text-white sm:text-base">
+              <h3 className="mt-3 font-bold text-white">
                 Email Us
               </h3>
 
-              <p className="mt-1 break-all text-xs leading-5 text-[#AAAAAA] sm:text-sm">
+              <p className="mt-1 break-all text-sm text-[#AAAAAA]">
                 dufitumurengezijotham21@gmail.com
               </p>
             </a>
@@ -128,10 +126,10 @@ export default function SiteBottom() {
 
           {/* ================= LOCATION ================= */}
 
-          <div className="mx-auto mt-5 flex max-w-5xl items-center justify-center gap-2 text-xs text-[#AAAAAA] sm:mt-6 sm:text-sm">
+          <div className="mx-auto mt-4 flex max-w-5xl items-center justify-center gap-2 text-sm text-[#AAAAAA]">
             <MapPin
-              size={17}
-              className="shrink-0 text-[#2979FF]"
+              size={18}
+              className="text-[#2979FF]"
             />
 
             <span>Rwanda</span>
@@ -139,12 +137,12 @@ export default function SiteBottom() {
 
           {/* ================= SOCIAL MEDIA ================= */}
 
-          <div className="mt-7 border-t border-white/10 pt-7 text-center sm:mt-8 sm:pt-8">
+          <div className="mt-8 border-t border-white/10 pt-8 text-center">
             <h3 className="font-bold text-white">
               Follow AGTIMES
             </h3>
 
-            <div className="mt-4 flex flex-wrap justify-center gap-2 sm:gap-3">
+            <div className="mt-4 flex flex-wrap justify-center gap-3">
               {/* Instagram */}
 
               <a
@@ -152,9 +150,9 @@ export default function SiteBottom() {
                 target="_blank"
                 rel="noopener noreferrer"
                 aria-label="AGTIMES Instagram"
-                className="flex items-center gap-2 rounded-xl border border-white/10 bg-[#121212] px-4 py-2.5 text-xs font-semibold text-white transition hover:bg-white/10 sm:px-5 sm:py-3 sm:text-sm"
+                className="flex items-center gap-2 rounded-xl border border-white/10 bg-[#121212] px-5 py-3 text-sm font-semibold text-white transition hover:bg-white/10"
               >
-                <SiInstagram size={18} className="sm:h-5 sm:w-5" />
+                <SiInstagram size={20} />
                 Instagram
               </a>
 
@@ -165,9 +163,9 @@ export default function SiteBottom() {
                 target="_blank"
                 rel="noopener noreferrer"
                 aria-label="AGTIMES TikTok"
-                className="flex items-center gap-2 rounded-xl border border-white/10 bg-[#121212] px-4 py-2.5 text-xs font-semibold text-white transition hover:bg-white/10 sm:px-5 sm:py-3 sm:text-sm"
+                className="flex items-center gap-2 rounded-xl border border-white/10 bg-[#121212] px-5 py-3 text-sm font-semibold text-white transition hover:bg-white/10"
               >
-                <SiTiktok size={18} className="sm:h-5 sm:w-5" />
+                <SiTiktok size={20} />
                 TikTok
               </a>
 
@@ -178,9 +176,9 @@ export default function SiteBottom() {
                 target="_blank"
                 rel="noopener noreferrer"
                 aria-label="AGTIMES X"
-                className="flex items-center gap-2 rounded-xl border border-white/10 bg-[#121212] px-4 py-2.5 text-xs font-semibold text-white transition hover:bg-white/10 sm:px-5 sm:py-3 sm:text-sm"
+                className="flex items-center gap-2 rounded-xl border border-white/10 bg-[#121212] px-5 py-3 text-sm font-semibold text-white transition hover:bg-white/10"
               >
-                <SiX size={18} className="sm:h-5 sm:w-5" />
+                <SiX size={20} />
                 X
               </a>
             </div>
@@ -190,12 +188,12 @@ export default function SiteBottom() {
 
       {/* ================= FOOTER ================= */}
 
-      <footer className="border-t border-white/10 bg-[#0D0D0D] px-4 py-10 sm:px-6 sm:py-12 lg:px-10">
-        <div className="mx-auto grid max-w-7xl gap-8 sm:gap-10 md:grid-cols-3">
+      <footer className="border-t border-white/10 bg-[#0D0D0D] px-6 py-12 lg:px-10">
+        <div className="mx-auto grid max-w-7xl gap-10 md:grid-cols-3">
           {/* AGTIMES */}
 
           <div>
-            <h2 className="text-xl font-extrabold tracking-wider sm:text-2xl">
+            <h2 className="text-2xl font-extrabold tracking-wider">
               <span className="text-[#00E5FF]">AG</span>
               <span className="text-[#E040FB]">TIMES</span>
             </h2>
@@ -213,7 +211,7 @@ export default function SiteBottom() {
               Quick Links
             </h3>
 
-            <div className="space-y-2.5 text-sm">
+            <div className="space-y-2 text-sm">
               <Link
                 href="/"
                 className="block text-[#AAAAAA] transition hover:text-white"
@@ -241,16 +239,6 @@ export default function SiteBottom() {
               >
                 Trending
               </Link>
-
-              {/* Login moved to footer */}
-
-              <Link
-                href="/login"
-                className="flex items-center gap-2 text-[#AAAAAA] transition hover:text-white"
-              >
-                <LogIn size={16} />
-                Login
-              </Link>
             </div>
           </div>
 
@@ -263,7 +251,7 @@ export default function SiteBottom() {
 
             <div className="space-y-3 text-sm text-[#AAAAAA]">
               <div className="flex items-center gap-2">
-                <MapPin size={17} className="shrink-0" />
+                <MapPin size={17} />
                 <span>Rwanda</span>
               </div>
 
@@ -271,17 +259,17 @@ export default function SiteBottom() {
                 href="tel:+250789063094"
                 className="flex items-center gap-2 transition hover:text-white"
               >
-                <Phone size={17} className="shrink-0" />
+                <Phone size={17} />
                 <span>0789063094</span>
               </a>
 
               <a
                 href="mailto:dufitumurengezijotham21@gmail.com"
-                className="flex items-start gap-2 break-all transition hover:text-white"
+                className="flex items-center gap-2 break-all transition hover:text-white"
               >
                 <Mail
                   size={17}
-                  className="mt-0.5 shrink-0"
+                  className="shrink-0"
                 />
 
                 <span>
@@ -294,12 +282,12 @@ export default function SiteBottom() {
 
         {/* Copyright */}
 
-        <div className="mx-auto mt-8 max-w-7xl border-t border-white/10 pt-6 text-center sm:mt-10">
+        <div className="mx-auto mt-10 max-w-7xl border-t border-white/10 pt-6 text-center">
           <p className="text-xs text-[#666666]">
             © 2026 AGTIMES. All rights reserved.
           </p>
 
-          <p className="mt-2 text-xs leading-5 text-[#555555]">
+          <p className="mt-2 text-xs text-[#555555]">
             AGTIMES is an entertainment platform.
           </p>
         </div>
@@ -307,4 +295,3 @@ export default function SiteBottom() {
     </>
   );
 }
-

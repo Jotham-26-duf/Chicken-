@@ -1,8 +1,9 @@
 import { getServerSession } from "next-auth";
 import { redirect } from "next/navigation";
+import Link from "next/link";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import Link from "next/link";
+import FeaturedSeriesButton from "./FeaturedSeriesButton";
 
 export default async function AdminSeriesPage() {
   const session = await getServerSession(authOptions);
@@ -31,6 +32,7 @@ export default async function AdminSeriesPage() {
   return (
     <main className="min-h-screen bg-[#121212] text-white">
       <div className="mx-auto flex min-h-screen max-w-7xl">
+
         {/* Sidebar */}
         <aside className="hidden w-64 border-r border-white/10 bg-[#1A1A1A] p-6 md:block">
           <div className="mb-10 text-2xl font-bold">
@@ -85,6 +87,7 @@ export default async function AdminSeriesPage() {
 
         {/* Main Content */}
         <section className="flex-1 p-6 md:p-10">
+
           {/* Header */}
           <div className="mb-10 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
             <div>
@@ -122,14 +125,14 @@ export default async function AdminSeriesPage() {
 
               <Link
                 href="/admin/series/new"
-                className="mt-6 inline-block rounded-xl bg-[#2979FF] px-5 py-3 font-semibold transition hover:brightness-110"
+                className="mt-6 inline-block rounded-xl bg-[#2979FF] px-5 py-3 font-semibold"
               >
                 + Add Series
               </Link>
             </div>
           ) : (
             <div className="overflow-x-auto rounded-2xl border border-white/10 bg-[#2A2A2A]">
-              <table className="w-full min-w-[800px]">
+              <table className="w-full min-w-[950px]">
                 <thead>
                   <tr className="border-b border-white/10 text-left">
                     <th className="px-6 py-4 text-sm text-[#AAAAAA]">
@@ -153,6 +156,10 @@ export default async function AdminSeriesPage() {
                     </th>
 
                     <th className="px-6 py-4 text-sm text-[#AAAAAA]">
+                      Featured
+                    </th>
+
+                    <th className="px-6 py-4 text-sm text-[#AAAAAA]">
                       Action
                     </th>
                   </tr>
@@ -161,7 +168,8 @@ export default async function AdminSeriesPage() {
                 <tbody>
                   {series.map((item) => {
                     const episodeCount = item.seasons.reduce(
-                      (total, season) => total + season.episodes.length,
+                      (total, season) =>
+                        total + season.episodes.length,
                       0
                     );
 
@@ -172,12 +180,22 @@ export default async function AdminSeriesPage() {
                       >
                         {/* Series */}
                         <td className="px-6 py-4">
-                          <div className="font-medium">
-                            {item.title}
-                          </div>
+                          <div className="flex items-center gap-4">
+                            <img
+                              src={item.image}
+                              alt={item.title}
+                              className="h-20 w-14 rounded-lg object-cover"
+                            />
 
-                          <div className="mt-1 text-xs text-[#777777]">
-                            {item.slug}
+                            <div>
+                              <div className="font-medium">
+                                {item.title}
+                              </div>
+
+                              <div className="mt-1 text-xs text-[#777777]">
+                                {item.slug}
+                              </div>
+                            </div>
                           </div>
                         </td>
 
@@ -199,6 +217,14 @@ export default async function AdminSeriesPage() {
                         {/* Episodes */}
                         <td className="px-6 py-4 text-[#AAAAAA]">
                           {episodeCount}
+                        </td>
+
+                        {/* Featured */}
+                        <td className="px-6 py-4">
+                          <FeaturedSeriesButton
+                            seriesId={item.id}
+                            isFeatured={item.isFeatured}
+                          />
                         </td>
 
                         {/* Action */}

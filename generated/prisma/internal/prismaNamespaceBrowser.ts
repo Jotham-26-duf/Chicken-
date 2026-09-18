@@ -55,6 +55,7 @@ export const ModelName = {
   Movie: 'Movie',
   Genre: 'Genre',
   MovieGenre: 'MovieGenre',
+  MovieDownload: 'MovieDownload',
   Favorite: 'Favorite',
   Series: 'Series',
   Season: 'Season',
@@ -105,6 +106,7 @@ export const MovieScalarFieldEnum = {
   type: 'type',
   streamUrl: 'streamUrl',
   downloadUrl: 'downloadUrl',
+  isFeatured: 'isFeatured',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 } as const
@@ -128,6 +130,18 @@ export const MovieGenreScalarFieldEnum = {
 export type MovieGenreScalarFieldEnum = (typeof MovieGenreScalarFieldEnum)[keyof typeof MovieGenreScalarFieldEnum]
 
 
+export const MovieDownloadScalarFieldEnum = {
+  id: 'id',
+  movieId: 'movieId',
+  part: 'part',
+  url: 'url',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type MovieDownloadScalarFieldEnum = (typeof MovieDownloadScalarFieldEnum)[keyof typeof MovieDownloadScalarFieldEnum]
+
+
 export const FavoriteScalarFieldEnum = {
   id: 'id',
   userId: 'userId',
@@ -147,6 +161,7 @@ export const SeriesScalarFieldEnum = {
   image: 'image',
   description: 'description',
   language: 'language',
+  isFeatured: 'isFeatured',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 } as const

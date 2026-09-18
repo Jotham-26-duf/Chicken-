@@ -1,3 +1,4 @@
+
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
@@ -18,39 +19,95 @@ function isValidUrl(value: string) {
   }
 }
 
-/*
-|--------------------------------------------------------------------------
-| UPDATE MOVIE
-|--------------------------------------------------------------------------
-*/
-export async function PUT(
+function isValidImage(value: string) {
+  // Allow local images stored inside public/images/movies/
+  if (
+    value.startsWith("/images/movies/") &&
+    value.length > "/images/movies/".length
+  ) {
+    return true;
+  }
+
+  // Also allow normal external image URLs
+  return isValidUrl(value);
+}
+
+export async function PATCH(
   request: Request,
-  { params }: RouteContext
+  context: RouteContext
 ) {
   try {
     const session = await getServerSession(authOptions);
 
-    if (!session?.user) {
+    if (!session?.user || session.user.role !== "ADMIN") {
       return NextResponse.json(
-        {
-          error: "You must be logged in.",
-        },
+        { error: "Unauthorized" },
         { status: 401 }
       );
     }
 
-    if (session.user.role !== "ADMIN") {
+    const { id } = await context.params;
+    const body = await request.json();
+
+    if (typeof body.isFeatured !== "boolean") {
       return NextResponse.json(
-        {
-          error:
-            "You are not authorized to perform this action.",
-        },
-        { status: 403 }
+        { error: "isFeatured must be a boolean." },
+        { status: 400 }
       );
     }
 
-    const { id } = await params;
+    const movie = await prisma.movie.findUnique({
+      where: { id },
+    });
 
+    if (!movie) {
+      return NextResponse.json(
+        { error: "Movie not found." },
+        { status: 404 }
+      );
+    }
+
+    const updatedMovie =
+      await prisma.movie.update({
+        where: { id },
+        data: {
+          isFeatured: body.isFeatured,
+        },
+        select: {
+          id: true,
+          isFeatured: true,
+        },
+      });
+
+    return NextResponse.json(updatedMovie);
+  } catch (error) {
+    console.error(
+      "PATCH /api/admin/movies/[id] error:",
+      error
+    );
+
+    return NextResponse.json(
+      { error: "Failed to update featured status." },
+      { status: 500 }
+    );
+  }
+}
+
+export async function PUT(
+  request: Request,
+  context: RouteContext
+) {
+  try {
+    const session = await getServerSession(authOptions);
+
+    if (!session?.user || session.user.role !== "ADMIN") {
+      return NextResponse.json(
+        { error: "Unauthorized" },
+        { status: 401 }
+      );
+    }
+
+    const { id } = await context.params;
     const body = await request.json();
 
     const {
@@ -66,25 +123,9 @@ export async function PUT(
       type,
       streamUrl,
       downloadUrl,
+      downloads,
       genreIds,
     } = body;
-
-    const uniqueGenreIds = [
-      ...new Set(
-        Array.isArray(genreIds)
-          ? genreIds.filter(
-              (genreId): genreId is string =>
-                typeof genreId === "string"
-            )
-          : []
-      ),
-    ];
-
-    /*
-    |--------------------------------------------------------------------------
-    | Validate required fields
-    |--------------------------------------------------------------------------
-    */
 
     if (
       !title ||
@@ -99,25 +140,12 @@ export async function PUT(
       !type
     ) {
       return NextResponse.json(
-        {
-          error: "Please fill in all required fields.",
-        },
+        { error: "Please fill in all required fields." },
         { status: 400 }
       );
     }
 
-    /*
-    |--------------------------------------------------------------------------
-    | Validate slug
-    |--------------------------------------------------------------------------
-    */
-
-    if (
-      typeof slug !== "string" ||
-      !/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(
-        slug.trim()
-      )
-    ) {
+    if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(slug)) {
       return NextResponse.json(
         {
           error:
@@ -127,216 +155,138 @@ export async function PUT(
       );
     }
 
-    /*
-    |--------------------------------------------------------------------------
-    | Validate year
-    |--------------------------------------------------------------------------
-    */
+    if (!/^\d{4}$/.test(String(year))) {
+      return NextResponse.json(
+        { error: "Year must contain exactly 4 digits." },
+        { status: 400 }
+      );
+    }
 
-    if (
-      typeof year !== "string" ||
-      !/^\d{4}$/.test(year.trim())
-    ) {
+    // Accept both local movie images and external image URLs.
+    if (!isValidImage(String(image).trim())) {
       return NextResponse.json(
         {
           error:
-            "Year must contain exactly 4 digits.",
+            "Please provide a valid image filename or image URL.",
         },
         { status: 400 }
       );
     }
-
-    /*
-    |--------------------------------------------------------------------------
-    | Validate image
-    |--------------------------------------------------------------------------
-    */
-
-    if (
-      typeof image !== "string" ||
-      !isValidUrl(image.trim())
-    ) {
-      return NextResponse.json(
-        {
-          error: "Image must be a valid URL.",
-        },
-        { status: 400 }
-      );
-    }
-
-    /*
-    |--------------------------------------------------------------------------
-    | Validate stream URL
-    |--------------------------------------------------------------------------
-    */
 
     if (
       streamUrl &&
-      (typeof streamUrl !== "string" ||
-        !isValidUrl(streamUrl.trim()))
+      !isValidUrl(String(streamUrl))
     ) {
       return NextResponse.json(
-        {
-          error:
-            "Stream URL must be a valid URL.",
-        },
+        { error: "Please provide a valid stream URL." },
         { status: 400 }
       );
     }
-
-    /*
-    |--------------------------------------------------------------------------
-    | Validate download URL
-    |--------------------------------------------------------------------------
-    */
 
     if (
       downloadUrl &&
-      (typeof downloadUrl !== "string" ||
-        !isValidUrl(downloadUrl.trim()))
+      !isValidUrl(String(downloadUrl))
     ) {
       return NextResponse.json(
         {
           error:
-            "Download URL must be a valid URL.",
+            "Please provide a valid legacy download URL.",
         },
         { status: 400 }
       );
     }
 
-    /*
-    |--------------------------------------------------------------------------
-    | Validate genres
-    |--------------------------------------------------------------------------
-    */
-
-    if (uniqueGenreIds.length === 0) {
+    if (!Array.isArray(genreIds) || genreIds.length === 0) {
       return NextResponse.json(
-        {
-          error:
-            "Please select at least one genre.",
-        },
+        { error: "Please select at least one genre." },
         { status: 400 }
       );
     }
-
-    /*
-    |--------------------------------------------------------------------------
-    | Check movie
-    |--------------------------------------------------------------------------
-    */
 
     const movie = await prisma.movie.findUnique({
-      where: {
-        id,
-      },
+      where: { id },
     });
 
     if (!movie) {
       return NextResponse.json(
-        {
-          error: "Movie not found.",
-        },
+        { error: "Movie not found." },
         { status: 404 }
       );
     }
 
-    /*
-    |--------------------------------------------------------------------------
-    | Check duplicate slug
-    |--------------------------------------------------------------------------
-    */
-
-    const existingMovie =
+    const duplicateSlug =
       await prisma.movie.findFirst({
         where: {
-          slug: slug.trim(),
+          slug,
           NOT: {
             id,
           },
         },
       });
 
-    if (existingMovie) {
+    if (duplicateSlug) {
       return NextResponse.json(
         {
           error:
-            "A movie with this slug already exists.",
+            "Another movie already uses this slug.",
         },
         { status: 409 }
       );
     }
 
-    /*
-    |--------------------------------------------------------------------------
-    | Check genres
-    |--------------------------------------------------------------------------
-    */
-
-    const existingGenres =
-      await prisma.genre.findMany({
-        where: {
-          id: {
-            in: uniqueGenreIds,
-          },
+    const genres = await prisma.genre.findMany({
+      where: {
+        id: {
+          in: genreIds,
         },
-        select: {
-          id: true,
-        },
-      });
+      },
+      select: {
+        id: true,
+      },
+    });
 
-    if (
-      existingGenres.length !==
-      uniqueGenreIds.length
-    ) {
+    if (genres.length !== genreIds.length) {
       return NextResponse.json(
-        {
-          error:
-            "One or more selected genres do not exist.",
-        },
+        { error: "One or more selected genres are invalid." },
         { status: 400 }
       );
     }
 
-    /*
-    |--------------------------------------------------------------------------
-    | Update movie
-    |--------------------------------------------------------------------------
-    */
+    const cleanedDownloads = Array.isArray(downloads)
+      ? downloads
+          .map((download: unknown) => {
+            const item = download as {
+              part?: unknown;
+              url?: unknown;
+            };
 
-    await prisma.movie.update({
-      where: {
-        id,
-      },
-      data: {
-        title: title.trim(),
-        slug: slug.trim(),
-        year: year.trim(),
-        rating: rating.trim(),
-        image: image.trim(),
-        description: description.trim(),
-        explainer: explainer.trim(),
-        translator: translator.trim(),
-        language: language.trim(),
-        type: type.trim(),
+            return {
+              part:
+                typeof item.part === "string"
+                  ? item.part.trim()
+                  : "",
+              url:
+                typeof item.url === "string"
+                  ? item.url.trim()
+                  : "",
+            };
+          })
+          .filter(
+            (download: { part: string; url: string }) =>
+              download.part && download.url
+          )
+      : [];
 
-        streamUrl:
-          typeof streamUrl === "string"
-            ? streamUrl.trim() || null
-            : null,
-
-        downloadUrl:
-          typeof downloadUrl === "string"
-            ? downloadUrl.trim() || null
-            : null,
-      },
-    });
-
-    /*
-    |--------------------------------------------------------------------------
-    | Replace genres
-    |--------------------------------------------------------------------------
-    */
+    for (const download of cleanedDownloads) {
+      if (!isValidUrl(download.url)) {
+        return NextResponse.json(
+          {
+            error: `Invalid download URL for ${download.part}.`,
+          },
+          { status: 400 }
+        );
+      }
+    }
 
     await prisma.movieGenre.deleteMany({
       where: {
@@ -344,111 +294,114 @@ export async function PUT(
       },
     });
 
-    await prisma.movieGenre.createMany({
-      data: uniqueGenreIds.map((genreId) => ({
+    await prisma.movieDownload.deleteMany({
+      where: {
         movieId: id,
-        genreId,
-      })),
+      },
     });
 
-    /*
-    |--------------------------------------------------------------------------
-    | Get updated movie
-    |--------------------------------------------------------------------------
-    */
-
     const updatedMovie =
-      await prisma.movie.findUnique({
-        where: {
-          id,
+      await prisma.movie.update({
+        where: { id },
+
+        data: {
+          title: String(title).trim(),
+          slug: String(slug).trim(),
+          year: String(year).trim(),
+          rating: String(rating).trim(),
+          image: String(image).trim(),
+          description: String(description).trim(),
+          explainer: String(explainer).trim(),
+          translator: String(translator).trim(),
+          language: String(language).trim(),
+          type: String(type).trim(),
+
+          streamUrl: streamUrl
+            ? String(streamUrl).trim()
+            : null,
+
+          downloadUrl:
+            cleanedDownloads.length > 0
+              ? null
+              : downloadUrl
+              ? String(downloadUrl).trim()
+              : null,
+
+          genres: {
+            create: genreIds.map((genreId: string) => ({
+              genre: {
+                connect: {
+                  id: genreId,
+                },
+              },
+            })),
+          },
+
+          downloads: {
+            create: cleanedDownloads.map(
+              (download: {
+                part: string;
+                url: string;
+              }) => ({
+                part: download.part,
+                url: download.url,
+              })
+            ),
+          },
         },
+
         include: {
           genres: {
             include: {
               genre: true,
             },
           },
+          downloads: true,
         },
       });
 
-    return NextResponse.json(updatedMovie, {
-      status: 200,
+    return NextResponse.json({
+      movie: updatedMovie,
     });
   } catch (error) {
-    console.error("Update movie error:", error);
+    console.error(
+      "PUT /api/admin/movies/[id] error:",
+      error
+    );
 
     return NextResponse.json(
-      {
-        error:
-          error instanceof Error
-            ? error.message
-            : "Failed to update movie.",
-      },
+      { error: "Failed to update movie." },
       { status: 500 }
     );
   }
 }
 
-/*
-|--------------------------------------------------------------------------
-| DELETE MOVIE
-|--------------------------------------------------------------------------
-*/
-
 export async function DELETE(
   request: Request,
-  { params }: RouteContext
+  context: RouteContext
 ) {
   try {
     const session = await getServerSession(authOptions);
 
-    if (!session?.user) {
+    if (!session?.user || session.user.role !== "ADMIN") {
       return NextResponse.json(
-        {
-          error: "You must be logged in.",
-        },
+        { error: "Unauthorized" },
         { status: 401 }
       );
     }
 
-    if (session.user.role !== "ADMIN") {
-      return NextResponse.json(
-        {
-          error:
-            "You are not authorized to perform this action.",
-        },
-        { status: 403 }
-      );
-    }
-
-    const { id } = await params;
-
-    /*
-    |--------------------------------------------------------------------------
-    | Check if movie exists
-    |--------------------------------------------------------------------------
-    */
+    const { id } = await context.params;
 
     const movie = await prisma.movie.findUnique({
-      where: {
-        id,
-      },
+      where: { id },
     });
 
     if (!movie) {
       return NextResponse.json(
-        {
-          error: "Movie not found.",
-        },
+        { error: "Movie not found." },
         { status: 404 }
       );
     }
-
-    /*
-    |--------------------------------------------------------------------------
-    | Delete movie genre relationships
-    |--------------------------------------------------------------------------
-    */
 
     await prisma.movieGenre.deleteMany({
       where: {
@@ -456,35 +409,23 @@ export async function DELETE(
       },
     });
 
-    /*
-    |--------------------------------------------------------------------------
-    | Delete movie
-    |--------------------------------------------------------------------------
-    */
-
     await prisma.movie.delete({
-      where: {
-        id,
-      },
+      where: { id },
     });
 
-    return NextResponse.json(
-      {
-        message: "Movie deleted successfully.",
-      },
-      { status: 200 }
-    );
+    return NextResponse.json({
+      message: "Movie deleted successfully.",
+    });
   } catch (error) {
-    console.error("Delete movie error:", error);
+    console.error(
+      "DELETE /api/admin/movies/[id] error:",
+      error
+    );
 
     return NextResponse.json(
-      {
-        error:
-          error instanceof Error
-            ? error.message
-            : "Failed to delete movie.",
-      },
+      { error: "Failed to delete movie." },
       { status: 500 }
     );
   }
 }
+

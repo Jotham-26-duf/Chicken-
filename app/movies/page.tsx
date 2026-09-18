@@ -1,7 +1,10 @@
 
-import Link from "next/link";
-
+import MovieCard from "@/app/components/MovieCard";
+import Navbar from "@/app/components/Navbar";
+import SiteBottom from "@/app/components/SiteBottom";
 import { prisma } from "@/lib/prisma";
+
+export const dynamic = "force-dynamic";
 
 export default async function MoviesPage() {
   const movies = await prisma.movie.findMany({
@@ -12,94 +15,68 @@ export default async function MoviesPage() {
 
   return (
     <main className="min-h-screen bg-[#121212] text-white">
-      {/* Header */}
+      <Navbar />
+
+      {/* ================= MOVIES HEADER ================= */}
+
       <section className="border-b border-white/10 bg-[#121212]">
-        <div className="mx-auto max-w-7xl px-6 py-10 lg:px-10">
-          <Link
-            href="/"
-            className="text-sm text-[#AAAAAA] transition hover:text-white"
-          >
-            ← Back to AGTIMES
-          </Link>
+        <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 sm:py-10 lg:px-8 lg:py-12">
+          <h1 className="text-2xl font-extrabold tracking-tight sm:text-3xl lg:text-4xl">
+            Movies
+          </h1>
 
-          <div className="mt-8">
-            <h1 className="text-4xl font-extrabold">
-              🎬 Movies
-            </h1>
-
-            <p className="mt-3 max-w-2xl text-[#AAAAAA]">
-              Discover the latest movies available on AGTIMES.
-              Browse our collection and choose something to watch.
-            </p>
-          </div>
+          <p className="mt-2 max-w-2xl text-sm leading-6 text-[#AAAAAA] sm:text-base">
+            Discover and watch our latest movies.
+          </p>
         </div>
       </section>
 
-      {/* Movies */}
-      <section className="mx-auto max-w-7xl px-6 py-10 lg:px-10">
-        {movies.length === 0 ? (
-          <div className="rounded-2xl border border-dashed border-white/10 bg-[#1C1C1C] p-12 text-center">
-            <div className="text-5xl">🎬</div>
+      {/* ================= MOVIE LIST ================= */}
 
-            <h2 className="mt-5 text-2xl font-bold">
-              No movies available
-            </h2>
-
-            <p className="mt-2 text-[#AAAAAA]">
-              Movies will appear here when they are added.
-            </p>
-          </div>
-        ) : (
-          <>
-            <div className="mb-6 flex items-center justify-between">
-              <h2 className="text-2xl font-bold">
-                All Movies
-              </h2>
-
-              <span className="text-sm text-[#AAAAAA]">
-                {movies.length}{" "}
-                {movies.length === 1 ? "Movie" : "Movies"}
-              </span>
-            </div>
-
-            <div className="grid grid-cols-2 gap-5 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
+      <section className="bg-[#121212]">
+        <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 sm:py-10 lg:px-8 lg:py-12">
+          {movies.length > 0 ? (
+            <div
+              className="
+                grid
+                grid-cols-2
+                gap-x-3
+                gap-y-7
+                sm:grid-cols-3
+                sm:gap-x-5
+                sm:gap-y-9
+                md:grid-cols-4
+                lg:grid-cols-5
+                lg:gap-x-6
+                lg:gap-y-10
+              "
+            >
               {movies.map((movie) => (
-                <Link
+                <MovieCard
                   key={movie.id}
-                  href={`/movies/${movie.slug}`}
-                  className="group overflow-hidden rounded-xl bg-[#2A2A2A] transition duration-300 hover:-translate-y-1 hover:shadow-2xl"
-                >
-                  <div className="relative aspect-[2/3] overflow-hidden">
-                    <img
-                      src={movie.image}
-                      alt={movie.title}
-                      className="h-full w-full object-cover transition duration-300 group-hover:scale-105"
-                    />
-
-                    <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent opacity-90" />
-
-                    <div className="absolute bottom-0 left-0 right-0 p-4">
-                      <h3 className="line-clamp-2 text-base font-bold">
-                        {movie.title}
-                      </h3>
-
-                      <div className="mt-2 flex items-center gap-2 text-xs text-gray-300">
-                        <span>{movie.year}</span>
-
-                        <span>•</span>
-
-                        <span>
-                          ⭐ {movie.rating}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                </Link>
+                  title={movie.title}
+                  year={movie.year}
+                  rating={movie.rating}
+                  image={movie.image}
+                  slug={movie.slug}
+                />
               ))}
             </div>
-          </>
-        )}
+          ) : (
+            <div className="rounded-2xl border border-white/10 bg-[#1B1B1B] px-4 py-12 text-center sm:px-6 sm:py-16">
+              <h2 className="text-lg font-bold text-white sm:text-xl">
+                No movies available
+              </h2>
+
+              <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-[#777777]">
+                Movies will appear here when they are added by the admin.
+              </p>
+            </div>
+          )}
+        </div>
       </section>
+
+      <SiteBottom />
     </main>
   );
 }

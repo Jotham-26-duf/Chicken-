@@ -59,6 +59,11 @@ export type Genre = Prisma.GenreModel
  */
 export type MovieGenre = Prisma.MovieGenreModel
 /**
+ * Model MovieDownload
+ * 
+ */
+export type MovieDownload = Prisma.MovieDownloadModel
+/**
  * Model Favorite
  * 
  */

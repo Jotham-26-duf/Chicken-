@@ -401,6 +401,7 @@ export const ModelName = {
   Movie: 'Movie',
   Genre: 'Genre',
   MovieGenre: 'MovieGenre',
+  MovieDownload: 'MovieDownload',
   Favorite: 'Favorite',
   Series: 'Series',
   Season: 'Season',
@@ -421,7 +422,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "user" | "movie" | "genre" | "movieGenre" | "favorite" | "series" | "season" | "episode" | "supportMessage"
+    modelProps: "user" | "movie" | "genre" | "movieGenre" | "movieDownload" | "favorite" | "series" | "season" | "episode" | "supportMessage"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -718,6 +719,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         count: {
           args: Prisma.MovieGenreCountArgs<ExtArgs>
           result: runtime.Types.Utils.Optional<Prisma.MovieGenreCountAggregateOutputType> | number
+        }
+      }
+    }
+    MovieDownload: {
+      payload: Prisma.$MovieDownloadPayload<ExtArgs>
+      fields: Prisma.MovieDownloadFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.MovieDownloadFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MovieDownloadPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.MovieDownloadFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MovieDownloadPayload>
+        }
+        findFirst: {
+          args: Prisma.MovieDownloadFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MovieDownloadPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.MovieDownloadFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MovieDownloadPayload>
+        }
+        findMany: {
+          args: Prisma.MovieDownloadFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MovieDownloadPayload>[]
+        }
+        create: {
+          args: Prisma.MovieDownloadCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MovieDownloadPayload>
+        }
+        createMany: {
+          args: Prisma.MovieDownloadCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.MovieDownloadCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MovieDownloadPayload>[]
+        }
+        delete: {
+          args: Prisma.MovieDownloadDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MovieDownloadPayload>
+        }
+        update: {
+          args: Prisma.MovieDownloadUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MovieDownloadPayload>
+        }
+        deleteMany: {
+          args: Prisma.MovieDownloadDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.MovieDownloadUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.MovieDownloadUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MovieDownloadPayload>[]
+        }
+        upsert: {
+          args: Prisma.MovieDownloadUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MovieDownloadPayload>
+        }
+        aggregate: {
+          args: Prisma.MovieDownloadAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateMovieDownload>
+        }
+        groupBy: {
+          args: Prisma.MovieDownloadGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.MovieDownloadGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.MovieDownloadCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.MovieDownloadCountAggregateOutputType> | number
         }
       }
     }
@@ -1157,6 +1232,7 @@ export const MovieScalarFieldEnum = {
   type: 'type',
   streamUrl: 'streamUrl',
   downloadUrl: 'downloadUrl',
+  isFeatured: 'isFeatured',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 } as const
@@ -1180,6 +1256,18 @@ export const MovieGenreScalarFieldEnum = {
 export type MovieGenreScalarFieldEnum = (typeof MovieGenreScalarFieldEnum)[keyof typeof MovieGenreScalarFieldEnum]
 
 
+export const MovieDownloadScalarFieldEnum = {
+  id: 'id',
+  movieId: 'movieId',
+  part: 'part',
+  url: 'url',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type MovieDownloadScalarFieldEnum = (typeof MovieDownloadScalarFieldEnum)[keyof typeof MovieDownloadScalarFieldEnum]
+
+
 export const FavoriteScalarFieldEnum = {
   id: 'id',
   userId: 'userId',
@@ -1199,6 +1287,7 @@ export const SeriesScalarFieldEnum = {
   image: 'image',
   description: 'description',
   language: 'language',
+  isFeatured: 'isFeatured',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 } as const
@@ -1313,6 +1402,13 @@ export type DateTimeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel
  * Reference to a field of type 'DateTime[]'
  */
 export type ListDateTimeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'DateTime[]'>
+    
+
+
+/**
+ * Reference to a field of type 'Boolean'
+ */
+export type BooleanFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Boolean'>
     
 
 
@@ -1498,6 +1594,7 @@ export type GlobalOmitConfig = {
   movie?: Prisma.MovieOmit
   genre?: Prisma.GenreOmit
   movieGenre?: Prisma.MovieGenreOmit
+  movieDownload?: Prisma.MovieDownloadOmit
   favorite?: Prisma.FavoriteOmit
   series?: Prisma.SeriesOmit
   season?: Prisma.SeasonOmit

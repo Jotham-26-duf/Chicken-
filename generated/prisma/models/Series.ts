@@ -33,6 +33,7 @@ export type SeriesMinAggregateOutputType = {
   image: string | null
   description: string | null
   language: string | null
+  isFeatured: boolean | null
   createdAt: Date | null
   updatedAt: Date | null
 }
@@ -46,6 +47,7 @@ export type SeriesMaxAggregateOutputType = {
   image: string | null
   description: string | null
   language: string | null
+  isFeatured: boolean | null
   createdAt: Date | null
   updatedAt: Date | null
 }
@@ -59,6 +61,7 @@ export type SeriesCountAggregateOutputType = {
   image: number
   description: number
   language: number
+  isFeatured: number
   createdAt: number
   updatedAt: number
   _all: number
@@ -74,6 +77,7 @@ export type SeriesMinAggregateInputType = {
   image?: true
   description?: true
   language?: true
+  isFeatured?: true
   createdAt?: true
   updatedAt?: true
 }
@@ -87,6 +91,7 @@ export type SeriesMaxAggregateInputType = {
   image?: true
   description?: true
   language?: true
+  isFeatured?: true
   createdAt?: true
   updatedAt?: true
 }
@@ -100,6 +105,7 @@ export type SeriesCountAggregateInputType = {
   image?: true
   description?: true
   language?: true
+  isFeatured?: true
   createdAt?: true
   updatedAt?: true
   _all?: true
@@ -186,6 +192,7 @@ export type SeriesGroupByOutputType = {
   image: string
   description: string
   language: string
+  isFeatured: boolean
   createdAt: Date
   updatedAt: Date
   _count: SeriesCountAggregateOutputType | null
@@ -220,6 +227,7 @@ export type SeriesWhereInput = {
   image?: Prisma.StringFilter<"Series"> | string
   description?: Prisma.StringFilter<"Series"> | string
   language?: Prisma.StringFilter<"Series"> | string
+  isFeatured?: Prisma.BoolFilter<"Series"> | boolean
   createdAt?: Prisma.DateTimeFilter<"Series"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Series"> | Date | string
   seasons?: Prisma.SeasonListRelationFilter
@@ -234,6 +242,7 @@ export type SeriesOrderByWithRelationInput = {
   image?: Prisma.SortOrder
   description?: Prisma.SortOrder
   language?: Prisma.SortOrder
+  isFeatured?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   seasons?: Prisma.SeasonOrderByRelationAggregateInput
@@ -251,6 +260,7 @@ export type SeriesWhereUniqueInput = Prisma.AtLeast<{
   image?: Prisma.StringFilter<"Series"> | string
   description?: Prisma.StringFilter<"Series"> | string
   language?: Prisma.StringFilter<"Series"> | string
+  isFeatured?: Prisma.BoolFilter<"Series"> | boolean
   createdAt?: Prisma.DateTimeFilter<"Series"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Series"> | Date | string
   seasons?: Prisma.SeasonListRelationFilter
@@ -265,6 +275,7 @@ export type SeriesOrderByWithAggregationInput = {
   image?: Prisma.SortOrder
   description?: Prisma.SortOrder
   language?: Prisma.SortOrder
+  isFeatured?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   _count?: Prisma.SeriesCountOrderByAggregateInput
@@ -284,6 +295,7 @@ export type SeriesScalarWhereWithAggregatesInput = {
   image?: Prisma.StringWithAggregatesFilter<"Series"> | string
   description?: Prisma.StringWithAggregatesFilter<"Series"> | string
   language?: Prisma.StringWithAggregatesFilter<"Series"> | string
+  isFeatured?: Prisma.BoolWithAggregatesFilter<"Series"> | boolean
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"Series"> | Date | string
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"Series"> | Date | string
 }
@@ -297,6 +309,7 @@ export type SeriesCreateInput = {
   image: string
   description: string
   language: string
+  isFeatured?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
   seasons?: Prisma.SeasonCreateNestedManyWithoutSeriesInput
@@ -311,6 +324,7 @@ export type SeriesUncheckedCreateInput = {
   image: string
   description: string
   language: string
+  isFeatured?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
   seasons?: Prisma.SeasonUncheckedCreateNestedManyWithoutSeriesInput
@@ -325,6 +339,7 @@ export type SeriesUpdateInput = {
   image?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.StringFieldUpdateOperationsInput | string
   language?: Prisma.StringFieldUpdateOperationsInput | string
+  isFeatured?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   seasons?: Prisma.SeasonUpdateManyWithoutSeriesNestedInput
@@ -339,6 +354,7 @@ export type SeriesUncheckedUpdateInput = {
   image?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.StringFieldUpdateOperationsInput | string
   language?: Prisma.StringFieldUpdateOperationsInput | string
+  isFeatured?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   seasons?: Prisma.SeasonUncheckedUpdateManyWithoutSeriesNestedInput
@@ -353,6 +369,7 @@ export type SeriesCreateManyInput = {
   image: string
   description: string
   language: string
+  isFeatured?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -366,6 +383,7 @@ export type SeriesUpdateManyMutationInput = {
   image?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.StringFieldUpdateOperationsInput | string
   language?: Prisma.StringFieldUpdateOperationsInput | string
+  isFeatured?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -379,6 +397,7 @@ export type SeriesUncheckedUpdateManyInput = {
   image?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.StringFieldUpdateOperationsInput | string
   language?: Prisma.StringFieldUpdateOperationsInput | string
+  isFeatured?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -392,6 +411,7 @@ export type SeriesCountOrderByAggregateInput = {
   image?: Prisma.SortOrder
   description?: Prisma.SortOrder
   language?: Prisma.SortOrder
+  isFeatured?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
@@ -405,6 +425,7 @@ export type SeriesMaxOrderByAggregateInput = {
   image?: Prisma.SortOrder
   description?: Prisma.SortOrder
   language?: Prisma.SortOrder
+  isFeatured?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
@@ -418,6 +439,7 @@ export type SeriesMinOrderByAggregateInput = {
   image?: Prisma.SortOrder
   description?: Prisma.SortOrder
   language?: Prisma.SortOrder
+  isFeatured?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
@@ -450,6 +472,7 @@ export type SeriesCreateWithoutSeasonsInput = {
   image: string
   description: string
   language: string
+  isFeatured?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -463,6 +486,7 @@ export type SeriesUncheckedCreateWithoutSeasonsInput = {
   image: string
   description: string
   language: string
+  isFeatured?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -492,6 +516,7 @@ export type SeriesUpdateWithoutSeasonsInput = {
   image?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.StringFieldUpdateOperationsInput | string
   language?: Prisma.StringFieldUpdateOperationsInput | string
+  isFeatured?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -505,6 +530,7 @@ export type SeriesUncheckedUpdateWithoutSeasonsInput = {
   image?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.StringFieldUpdateOperationsInput | string
   language?: Prisma.StringFieldUpdateOperationsInput | string
+  isFeatured?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -549,6 +575,7 @@ export type SeriesSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs =
   image?: boolean
   description?: boolean
   language?: boolean
+  isFeatured?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   seasons?: boolean | Prisma.Series$seasonsArgs<ExtArgs>
@@ -564,6 +591,7 @@ export type SeriesSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extens
   image?: boolean
   description?: boolean
   language?: boolean
+  isFeatured?: boolean
   createdAt?: boolean
   updatedAt?: boolean
 }, ExtArgs["result"]["series"]>
@@ -577,6 +605,7 @@ export type SeriesSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extens
   image?: boolean
   description?: boolean
   language?: boolean
+  isFeatured?: boolean
   createdAt?: boolean
   updatedAt?: boolean
 }, ExtArgs["result"]["series"]>
@@ -590,11 +619,12 @@ export type SeriesSelectScalar = {
   image?: boolean
   description?: boolean
   language?: boolean
+  isFeatured?: boolean
   createdAt?: boolean
   updatedAt?: boolean
 }
 
-export type SeriesOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "title" | "slug" | "year" | "rating" | "image" | "description" | "language" | "createdAt" | "updatedAt", ExtArgs["result"]["series"]>
+export type SeriesOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "title" | "slug" | "year" | "rating" | "image" | "description" | "language" | "isFeatured" | "createdAt" | "updatedAt", ExtArgs["result"]["series"]>
 export type SeriesInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   seasons?: boolean | Prisma.Series$seasonsArgs<ExtArgs>
   _count?: boolean | Prisma.SeriesCountOutputTypeDefaultArgs<ExtArgs>
@@ -616,6 +646,7 @@ export type $SeriesPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs
     image: string
     description: string
     language: string
+    isFeatured: boolean
     createdAt: Date
     updatedAt: Date
   }, ExtArgs["result"]["series"]>
@@ -1050,6 +1081,7 @@ export interface SeriesFieldRefs {
   readonly image: Prisma.FieldRef<"Series", 'String'>
   readonly description: Prisma.FieldRef<"Series", 'String'>
   readonly language: Prisma.FieldRef<"Series", 'String'>
+  readonly isFeatured: Prisma.FieldRef<"Series", 'Boolean'>
   readonly createdAt: Prisma.FieldRef<"Series", 'DateTime'>
   readonly updatedAt: Prisma.FieldRef<"Series", 'DateTime'>
 }

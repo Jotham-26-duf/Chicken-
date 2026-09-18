@@ -1,4 +1,3 @@
-
 {
   "name": "agtimes",
   "version": "0.1.0",
@@ -17,13 +16,14 @@
     "cf-typegen": "wrangler types --env-interface CloudflareEnv cloudflare-env.d.ts"
   },
   "dependencies": {
+    "@icons-pack/react-simple-icons": "^13.15.1",
     "@opennextjs/cloudflare": "^1.20.6",
     "@prisma/adapter-pg": "^7.10.0",
     "@prisma/client": "^7.10.0",
     "bcryptjs": "^3.0.3",
     "dotenv": "^17.4.2",
     "framer-motion": "^13.1.1",
-    "lucide-react": "^1.39.0",
+    "lucide-react": "^1.46.0",
     "next": "16.3.4",
     "next-auth": "^4.24.15",
     "pg": "^8.23.0",

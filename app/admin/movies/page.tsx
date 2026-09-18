@@ -4,6 +4,7 @@ import Link from "next/link";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import DeleteMovieButton from "./DeleteMovieButton";
+import FeaturedMovieButton from "./FeaturedMovieButton";
 
 export default async function AdminMoviesPage() {
   const session = await getServerSession(authOptions);
@@ -53,6 +54,13 @@ export default async function AdminMoviesPage() {
               className="block rounded-xl bg-[#2979FF] px-4 py-3 font-medium"
             >
               Movies
+            </Link>
+
+            <Link
+              href="/admin/series"
+              className="block rounded-xl px-4 py-3 text-[#AAAAAA] transition hover:bg-white/5 hover:text-white"
+            >
+              Series
             </Link>
 
             <Link
@@ -127,7 +135,7 @@ export default async function AdminMoviesPage() {
 
             /* Movies Table */
             <div className="overflow-x-auto rounded-2xl border border-white/10 bg-[#2A2A2A]">
-              <table className="w-full min-w-[900px]">
+              <table className="w-full min-w-[1050px]">
 
                 <thead>
                   <tr className="border-b border-white/10 text-left">
@@ -145,6 +153,10 @@ export default async function AdminMoviesPage() {
 
                     <th className="px-6 py-4 text-sm text-[#AAAAAA]">
                       Genres
+                    </th>
+
+                    <th className="px-6 py-4 text-sm text-[#AAAAAA]">
+                      Featured
                     </th>
 
                     <th className="px-6 py-4 text-sm text-[#AAAAAA]">
@@ -200,6 +212,14 @@ export default async function AdminMoviesPage() {
                               .map((item) => item.genre.name)
                               .join(", ")
                           : "No genre"}
+                      </td>
+
+                      {/* Featured */}
+                      <td className="px-6 py-4">
+                        <FeaturedMovieButton
+                          movieId={movie.id}
+                          isFeatured={movie.isFeatured}
+                        />
                       </td>
 
                       {/* Actions */}
